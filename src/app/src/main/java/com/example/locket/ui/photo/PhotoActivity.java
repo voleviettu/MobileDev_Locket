@@ -27,6 +27,8 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.example.locket.ui.profile.ProfileActivity;
+
 public class PhotoActivity extends AppCompatActivity {
 
     private PreviewView previewView;
@@ -42,6 +44,11 @@ public class PhotoActivity extends AppCompatActivity {
 
         previewView = findViewById(R.id.view_finder);
         ImageView btnCapture = findViewById(R.id.btn_capture);
+        ImageView btnProfile = findViewById(R.id.btn_profile);
+        btnProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(PhotoActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
 
         if (allPermissionsGranted()) {
             startCamera();

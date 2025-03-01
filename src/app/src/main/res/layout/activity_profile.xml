@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="20dp"
+    android:background="@color/black">
+
+    <!-- Header chứa các nút điều hướng -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@color/black">
+
+        <!-- Nút quay lại (bên trái) -->
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_back"
+            android:tint="@color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <!-- Nút cài đặt (bên phải cùng) -->
+        <ImageView
+            android:id="@+id/btn_settings"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_settings"
+            android:tint="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <!-- Nút bạn bè (bên trái của cài đặt) -->
+        <ImageView
+            android:id="@+id/btn_friends"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_friends"
+            android:tint="@color/white"
+            app:layout_constraintEnd_toStartOf="@id/btn_settings"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginEnd="16dp"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Ảnh đại diện -->
+    <ImageView
+        android:id="@+id/profile_avatar"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_below="@id/header_layout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/default_avatar"
+        android:scaleType="centerCrop"
+        android:background="@drawable/circle_background"/>
+
+    <!-- Tên người dùng -->
+    <TextView
+        android:id="@+id/profile_username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/profile_avatar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:text="Tên người dùng"
+        android:textSize="20sp"
+        android:textColor="@color/white"
+        android:textStyle="bold"/>
+
+    <!-- Email người dùng -->
+    <TextView
+        android:id="@+id/profile_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/profile_username"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp"
+        android:text="email@example.com"
+        android:textSize="16sp"
+        android:textColor="@color/gray"/>
+
+    <!-- Nút chỉnh sửa hồ sơ -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_edit_profile"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:text="UPDATE LOCKET GOLD"
+        android:fontFamily="@font/craftroundedbold"
+        android:textColor="@color/gold"
+        android:textSize="16sp"
+        android:background="@drawable/rounded_gold_button"
+        android:backgroundTint="@null"
+        android:layout_marginTop="20dp"
+        android:layout_below="@id/profile_email"
+        android:layout_centerHorizontal="true"/>
+</RelativeLayout>

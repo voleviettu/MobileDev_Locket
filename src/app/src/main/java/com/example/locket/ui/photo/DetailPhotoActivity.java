@@ -4,8 +4,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +15,9 @@ import com.example.locket.R;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import com.example.locket.data.CloudinaryUploader;
+
 
 public class DetailPhotoActivity extends AppCompatActivity {
 
@@ -27,6 +32,7 @@ public class DetailPhotoActivity extends AppCompatActivity {
         photoView = findViewById(R.id.photo);
         ImageView btnDownload = findViewById(R.id.btn_download);
         ImageView btnClose = findViewById(R.id.btn_flash);
+        ImageView btnSend = findViewById(R.id.btn_capture);
 
         photoPath = getIntent().getStringExtra("photo_path");
         if (photoPath != null) {
@@ -37,6 +43,30 @@ public class DetailPhotoActivity extends AppCompatActivity {
 
         btnDownload.setOnClickListener(v -> savePhotoToGallery());
         btnClose.setOnClickListener(v -> finish());
+        // Xử lý sự kiện bấm nút Gửi
+        btnSend.setOnClickListener(v -> uploadPhotoToCloudinary());
+    }
+
+    private void uploadPhotoToCloudinary() {
+        if (photoPath == null) {
+            Toast.makeText(this, "Không có ảnh để gửi!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Uri fileUri = Uri.fromFile(new File(photoPath));
+
+        new Thread(() -> {
+            String imageUrl = CloudinaryUploader.uploadImage(getApplicationContext(), fileUri);
+            runOnUiThread(() -> {
+                if (imageUrl != null) {
+                    Toast.makeText(DetailPhotoActivity.this, "Ảnh đã được tải lên!", Toast.LENGTH_SHORT).show();
+                    Log.d("Cloudinary", "Ảnh đã upload: " + imageUrl);
+                } else {
+                    Toast.makeText(DetailPhotoActivity.this, "Tải ảnh lên thất bại!", Toast.LENGTH_SHORT).show();
+                    Log.e("Cloudinary", "Upload failed");
+                }
+            });
+        }).start();
     }
 
     private Bitmap rotateImageIfRequired(Bitmap bitmap, String photoPath) {
