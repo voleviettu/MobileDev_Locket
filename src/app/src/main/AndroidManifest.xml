@@ -28,6 +28,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".auth.WelcomeActivity" />
+        <activity android:name=".auth.SignUpEmail" android:exported="true" />
+        <activity android:name=".auth.SignUpPassword" />
         <activity android:name=".ui.photo.PhotoActivity" />
         <activity android:name=".ui.photo.DetailPhotoActivity" />
 

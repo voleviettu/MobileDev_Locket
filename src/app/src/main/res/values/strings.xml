@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Locket</string>
+    <string name="email_title">Email của bạn là gì?</string>
+    <string name="email_hint">Địa chỉ email</string>
+    <string name="continue_button">Tiếp tục →</string>
+    <string name="terms_and_conditions">Bằng cách nhấn vào nút Tiếp tục, bạn đồng ý với chúng tôi\nĐiều khoản dịch vụ và Chính sách quyền riêng tư</string>
+    <string name="back_button_description">Back</string>
+    <string name="password_title">Chọn một mật khẩu</string>
+    <string name="password_hint">Mật khẩu</string>
+    <string name="password_requirement">Mật khẩu phải có ít nhất 8 ký tự</string>
+    <string name="toggle_password_visibility">Toggle password visibility</string>
 </resources>

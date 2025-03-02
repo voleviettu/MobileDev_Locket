@@ -23,7 +23,12 @@ public class WelcomeActivity extends AppCompatActivity {
             finish();
         };
 
-        btnRegister.setOnClickListener(goToPhoto);
+        View.OnClickListener goToSignUpEmail = v -> {
+            startActivity(new Intent(WelcomeActivity.this, SignUpEmail.class));
+            finish();
+        };
+
+        btnRegister.setOnClickListener(goToSignUpEmail);
         btnLogin.setOnClickListener(goToPhoto);
     }
 }
