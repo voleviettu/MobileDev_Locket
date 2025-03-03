@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -27,23 +28,54 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.example.locket.ui.profile.ProfileActivity;
+import com.example.locket.ui.profile.ProfileActivity; // để navigate đến pf
+
+import androidx.lifecycle.ViewModelProvider;
+import com.example.locket.viewmodel.UserViewModel;
+import com.example.locket.model.User;
 
 public class PhotoActivity extends AppCompatActivity {
+    private UserViewModel userViewModel;
+    private User currentUser;
+
 
     private PreviewView previewView;
     private ImageCapture imageCapture;
+    private Camera camera;
     private ExecutorService cameraExecutor;
     private static final int REQUEST_CODE_PERMISSIONS = 10;
     private static final String[] REQUIRED_PERMISSIONS = new String[]{android.Manifest.permission.CAMERA};
+    private CameraSelector cameraSelector = new CameraSelector.Builder()
+            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+            .build();  // để xoay camera
+    private boolean isFlashOn = false;
+    private boolean isBackCamera = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo);
 
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        userViewModel.getCurrentUser().observe(this, user -> {
+            if (user != null) {
+                currentUser = user;
+                Log.d("PhotoActivity", "User hiện tại: " + currentUser.getUsername());
+            } else {
+                Log.e("PhotoActivity", "Không tìm thấy user!");
+            }
+        });
+        if (currentUser == null) {
+            Log.d("PhotoActivity", "Tải user từ Firestore...");
+            userViewModel.loadUser("125");
+        }
+
         previewView = findViewById(R.id.view_finder);
         ImageView btnCapture = findViewById(R.id.btn_capture);
+        ImageView btnSwitchCamera = findViewById(R.id.btn_switch_camera);
+        ImageView btnFlash = findViewById(R.id.btn_flash);
+
+        // chuyển đến profile
         ImageView btnProfile = findViewById(R.id.btn_profile);
         btnProfile.setOnClickListener(v -> {
             Intent intent = new Intent(PhotoActivity.this, ProfileActivity.class);
@@ -59,6 +91,9 @@ public class PhotoActivity extends AppCompatActivity {
         cameraExecutor = Executors.newSingleThreadExecutor();
 
         btnCapture.setOnClickListener(v -> takePhoto());
+        btnSwitchCamera.setOnClickListener(v -> switchCamera());
+        btnFlash.setOnClickListener(v -> toggleFlash(btnFlash));
+
     }
 
     private void startCamera() {
@@ -72,13 +107,11 @@ public class PhotoActivity extends AppCompatActivity {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                CameraSelector cameraSelector = new CameraSelector.Builder()
-                        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                imageCapture = new ImageCapture.Builder()
+                        .setFlashMode(isFlashOn ? ImageCapture.FLASH_MODE_ON : ImageCapture.FLASH_MODE_OFF)
                         .build();
-
-                imageCapture = new ImageCapture.Builder().build();
-                
-                Camera camera = cameraProvider.bindToLifecycle(
+                cameraProvider.unbindAll();
+                camera = cameraProvider.bindToLifecycle(
                         this, cameraSelector, preview, imageCapture);
 
             } catch (Exception e) {
@@ -88,6 +121,11 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     private void takePhoto() {
+        if (currentUser == null) {
+            Toast.makeText(this, "Vui lòng chờ tải user...", Toast.LENGTH_SHORT).show();
+            Log.e("PhotoActivity", "currentUser == null, không có user để lưu ảnh");
+            return;
+        }
         if (imageCapture == null) return;
 
         File photoFile = new File(getExternalFilesDir(null), System.currentTimeMillis() + ".jpg");
@@ -101,6 +139,7 @@ public class PhotoActivity extends AppCompatActivity {
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                         Intent intent = new Intent(PhotoActivity.this, DetailPhotoActivity.class);
                         intent.putExtra("photo_path", photoFile.getAbsolutePath());
+                        intent.putExtra("user_id", currentUser.getUserId());
                         startActivity(intent);
                     }
 
@@ -112,6 +151,21 @@ public class PhotoActivity extends AppCompatActivity {
                 });
     }
 
+    private void switchCamera() {
+        isBackCamera = !isBackCamera;
+        cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(isBackCamera ? CameraSelector.LENS_FACING_BACK : CameraSelector.LENS_FACING_FRONT)
+                .build();
+        startCamera();
+    }
+
+    private void toggleFlash(ImageView btnFlash) {
+        isFlashOn = !isFlashOn;
+        if (camera != null && camera.getCameraInfo().hasFlashUnit()) {
+            camera.getCameraControl().enableTorch(isFlashOn);
+        }
+        btnFlash.setImageResource(isFlashOn ? R.drawable.ic_flash_on : R.drawable.ic_flash);
+    }
     private boolean allPermissionsGranted() {
         for (String permission : REQUIRED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, permission) != android.content.pm.PackageManager.PERMISSION_GRANTED) {

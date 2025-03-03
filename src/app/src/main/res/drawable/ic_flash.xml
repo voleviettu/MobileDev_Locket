@@ -3,10 +3,10 @@
     android:height="18dp"
     android:viewportWidth="18"
     android:viewportHeight="18"
-    android:tint="#FFFFFF">
+    android:tint="#FFF123">
 
     <path
-        android:strokeColor="@android:color/white"
+        android:strokeColor="#FFF123"
         android:strokeWidth="1.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"

@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,9 +20,25 @@ import java.io.IOException;
 import com.example.locket.data.CloudinaryUploader;
 
 
+import androidx.lifecycle.ViewModelProvider;
+import com.example.locket.viewmodel.PhotoViewModel;
+import com.example.locket.data.PhotoRepository;
+import com.google.firebase.firestore.GeoPoint;
+import android.net.Uri;
+import android.widget.Toast;
+import java.io.File;
+import java.util.ArrayList;
+
+import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+
+
 public class DetailPhotoActivity extends AppCompatActivity {
+    private PhotoViewModel photoViewModel;
 
     private String photoPath;
+    private String userId;
     private ImageView photoView;
 
     @Override
@@ -29,10 +46,19 @@ public class DetailPhotoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo_detail);
 
+        photoViewModel = new ViewModelProvider(this).get(PhotoViewModel.class);
+        photoViewModel.getIsUploading().observe(this, isUploading -> {
+            if (isUploading) {
+                Toast.makeText(this, "Đang tải ảnh lên...", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         photoView = findViewById(R.id.photo);
         ImageView btnDownload = findViewById(R.id.btn_download);
         ImageView btnClose = findViewById(R.id.btn_flash);
         ImageView btnSend = findViewById(R.id.btn_capture);
+
+        userId = getIntent().getStringExtra("user_id");
 
         photoPath = getIntent().getStringExtra("photo_path");
         if (photoPath != null) {
@@ -40,33 +66,39 @@ public class DetailPhotoActivity extends AppCompatActivity {
             Bitmap rotatedBitmap = rotateImageIfRequired(bitmap, photoPath);
             photoView.setImageBitmap(rotatedBitmap);
         }
+        EditText captionInput = findViewById(R.id.message_input);
 
         btnDownload.setOnClickListener(v -> savePhotoToGallery());
         btnClose.setOnClickListener(v -> finish());
         // Xử lý sự kiện bấm nút Gửi
-        btnSend.setOnClickListener(v -> uploadPhotoToCloudinary());
+        btnSend.setOnClickListener(v -> uploadPhoto(captionInput.getText().toString()));
     }
 
-    private void uploadPhotoToCloudinary() {
-        if (photoPath == null) {
-            Toast.makeText(this, "Không có ảnh để gửi!", Toast.LENGTH_SHORT).show();
+    private void uploadPhoto(String caption) {
+        if (photoPath == null || userId == null) {
+            Toast.makeText(this, "Không có ảnh hoặc user chưa xác định!", Toast.LENGTH_SHORT).show();
             return;
         }
 
         Uri fileUri = Uri.fromFile(new File(photoPath));
+        ImageView btnSend = findViewById(R.id.btn_capture);
+        btnSend.setPadding(0, 0, 0, 0);
+        btnSend.setImageResource(R.drawable.ic_done);
 
-        new Thread(() -> {
-            String imageUrl = CloudinaryUploader.uploadImage(getApplicationContext(), fileUri);
-            runOnUiThread(() -> {
-                if (imageUrl != null) {
-                    Toast.makeText(DetailPhotoActivity.this, "Ảnh đã được tải lên!", Toast.LENGTH_SHORT).show();
-                    Log.d("Cloudinary", "Ảnh đã upload: " + imageUrl);
-                } else {
-                    Toast.makeText(DetailPhotoActivity.this, "Tải ảnh lên thất bại!", Toast.LENGTH_SHORT).show();
-                    Log.e("Cloudinary", "Upload failed");
-                }
-            });
-        }).start();
+        photoViewModel.uploadPhoto(
+                getApplicationContext(),
+                fileUri,
+                userId,
+                caption,
+                null,
+                null,
+                new ArrayList<>()
+        );
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            startActivity(new Intent(DetailPhotoActivity.this, PhotoActivity.class));
+            finish();
+        }, 1000);
+
     }
 
     private Bitmap rotateImageIfRequired(Bitmap bitmap, String photoPath) {

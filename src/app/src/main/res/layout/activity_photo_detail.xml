@@ -69,15 +69,16 @@
                 android:scaleType="centerCrop"
                  />
 
-            <TextView
+            <EditText
                 android:id="@+id/message_input"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center_horizontal"
                 android:background="@drawable/button_oval"
-                android:paddingHorizontal="15dp"
+                android:paddingHorizontal="30dp"
                 android:paddingVertical="10dp"
-                android:text="Thêm một tin nhắn"
+                android:hint="Thêm một tin nhắn"
+                android:textColorHint="@color/white"
                 android:textColor="@color/white"
                 android:textSize="18sp"
                 android:alpha="0.8"
