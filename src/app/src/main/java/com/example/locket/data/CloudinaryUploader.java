@@ -50,10 +50,14 @@ public class CloudinaryUploader {
 
     private static String getFileName(Context context, Uri uri) {
         Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
-        if (cursor != null && cursor.moveToFirst()) {
-            String name = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+        if (cursor != null) {
+            int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+            if (nameIndex != -1 && cursor.moveToFirst()) {
+                String name = cursor.getString(nameIndex);
+                cursor.close();
+                return name;
+            }
             cursor.close();
-            return name;
         }
         return "temp_file";
     }
