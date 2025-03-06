@@ -9,4 +9,10 @@
     <string name="password_hint">Mật khẩu</string>
     <string name="password_requirement">Mật khẩu phải có ít nhất 8 ký tự</string>
     <string name="toggle_password_visibility">Toggle password visibility</string>
+    <string name="full_name_title">Tên bạn là gì?</string>
+    <string name="first_name_hint">Tên</string>
+    <string name="last_name_hint">Họ</string>
+    <string name="username_title">Thêm một tên người dùng</string>
+    <string name="username_hint">Username</string>
+
 </resources>

@@ -1,4 +1,4 @@
-package com.example.locket.auth; //  Replace with your actual package
+package com.example.locket.auth;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;

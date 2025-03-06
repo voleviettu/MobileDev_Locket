@@ -23,6 +23,9 @@ public class SignUpPassword extends AppCompatActivity {
     private EditText passwordEditText;
     private ImageView passwordToggleImage;
     private Button continueButton;
+
+    private ImageButton backButton;
+
     private boolean isPasswordVisible = false; // Keep track of visibility
 
     @Override
@@ -33,7 +36,7 @@ public class SignUpPassword extends AppCompatActivity {
         passwordEditText = findViewById(R.id.input_password);
         passwordToggleImage = findViewById(R.id.password_toggle_image);
         continueButton = findViewById(R.id.button_continue);
-        ImageButton backButton = findViewById(R.id.button_back);
+        backButton = findViewById(R.id.button_back);
 
         passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
@@ -71,12 +74,12 @@ public class SignUpPassword extends AppCompatActivity {
             String password = passwordEditText.getText().toString();
             String email = getIntent().getStringExtra("email"); // Get email from previous activity
 
-            Intent intent = new Intent(SignUpPassword.this, SignUpFullname.class);
+            // Launch SignUpFullName
+            Intent intent = new Intent(SignUpPassword.this, SignUpFullName.class);
             intent.putExtra("email", email);
             intent.putExtra("password", password);
             startActivity(intent);
         });
-
         backButton.setOnClickListener(v -> finish());
     }
 
