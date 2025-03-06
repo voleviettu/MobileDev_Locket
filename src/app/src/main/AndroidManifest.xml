@@ -27,11 +27,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".auth.WelcomeActivity" />
-        <activity android:name=".auth.SignUpEmail" android:exported="true" />
+        <activity android:name=".auth.WelcomeActivity" android:exported="true" />
+        <activity android:name=".auth.SignUpEmail" />
         <activity android:name=".auth.SignUpPassword" />
         <activity android:name=".auth.SignUpFullName"/>
         <activity android:name=".auth.SignUpUsername"/>
+        <activity android:name=".auth.SignInEmail" />
+        <activity android:name=".auth.SignInPassword" />
         <activity android:name=".ui.photo.PhotoActivity" />
         <activity android:name=".ui.photo.DetailPhotoActivity" />
         <activity android:name=".ui.settings.ChangeIconActivity" />
