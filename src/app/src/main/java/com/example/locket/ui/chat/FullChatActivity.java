@@ -29,12 +29,13 @@ public class FullChatActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         chatList = new ArrayList<>();
-        chatList.add(new Chat("Minh Ngoc", "😊", "2h", R.drawable.ic_profile));
-        chatList.add(new Chat("Khue Gia", "Định cát mà không biết hơ...", "2d", R.drawable.ic_profile));
-        chatList.add(new Chat("Nhật Nhật", "Hong, căng ơn 🥴", "3d", R.drawable.ic_profile));
+        chatList.add(new Chat("Marry", "😊", "2h", R.drawable.ic_profile));
+        chatList.add(new Chat("Peter", "Chúc một ngày tốt lành", "2d", R.drawable.ic_profile));
+        chatList.add(new Chat("Nhất Nhất", "Hong, cảm ơn 🥴", "3d", R.drawable.ic_profile));
         chatList.add(new Chat("Rắn", "😍", "3d", R.drawable.ic_profile));
-        chatList.add(new Chat("wan min", "em đi vs lớp em", "4d", R.drawable.ic_profile));
+        chatList.add(new Chat("wan min", "hello world", "4d", R.drawable.ic_profile));
         chatList.add(new Chat("Thien", "💛", "5d", R.drawable.ic_profile));
+Ư
 
         chatAdapter = new ChatAdapter(chatList);
         recyclerView.setAdapter(chatAdapter);
