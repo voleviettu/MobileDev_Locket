@@ -82,6 +82,12 @@ public class PhotoActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        ImageView btnUploadImg = findViewById(R.id.btn_upload);
+        btnUploadImg.setOnClickListener(v -> {
+            Intent intent = new Intent(PhotoActivity.this, UploadImageActivity.class);
+            startActivity(intent);
+        });
+
         if (allPermissionsGranted()) {
             startCamera();
         } else {
