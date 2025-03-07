@@ -1,4 +1,4 @@
-package com.example.locket.ui.photo;
+package com.example.locket.ui.settings;
 
 import android.content.Context;
 import android.view.LayoutInflater;

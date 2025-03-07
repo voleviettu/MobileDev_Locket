@@ -1,6 +1,8 @@
 package com.example.locket.ui.photo;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -8,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.locket.R;
+import com.example.locket.utils.NavigationUtils;
 
 public class DetailPhotoFriendActivity extends AppCompatActivity {
 
@@ -39,5 +42,14 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         userName.setText("Rần");
         postTime.setText("2m");
         caption.setText("Caption");
+
+        btnShowAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DetailPhotoFriendActivity.this, FullPhotoActivity.class);
+                startActivity(intent);
+            }
+        });
+        NavigationUtils.setChatButtonClickListener(btnChat, this);
     }
 }

@@ -19,7 +19,7 @@
         android:theme="@style/Theme.Locket"
         tools:targetApi="31">
         <activity
-            android:name=".ui.main.MainActivity"
+            android:name=".ui.photo.FullPhotoActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,10 +30,12 @@
         <activity android:name=".auth.WelcomeActivity" />
         <activity android:name=".auth.SignUpEmail" android:exported="true" />
         <activity android:name=".auth.SignUpPassword" />
+        <activity android:name=".ui.chat.FullChatActivity" />
         <activity android:name=".ui.photo.PhotoActivity" />
         <activity android:name=".ui.photo.DetailPhotoActivity" />
+        <activity android:name=".ui.photo.DetailPhotoFriendActivity" />
+<!--        <activity android:name=".ui.photo.FullPhotoActivity" />-->
         <activity android:name=".ui.settings.ChangeIconActivity" />
-
         <activity android:name=".ui.profile.ProfileActivity"/>
         <activity android:name=".ui.settings.SettingsActivity" />
     </application>

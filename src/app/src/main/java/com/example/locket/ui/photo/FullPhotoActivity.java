@@ -4,12 +4,16 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.locket.R;
+import com.example.locket.ui.settings.ImageAdapter;
+import com.example.locket.utils.NavigationUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,13 +23,15 @@ public class FullPhotoActivity extends AppCompatActivity {
     private ImageAdapter imageAdapter;
     private List<Integer> imageList;
 
+    private ImageView btnChat;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullphoto);
 
         recyclerView = findViewById(R.id.recyclerView);
-
+        btnChat = findViewById(R.id.btn_chat);
         imageList = new ArrayList<>();
         imageList.add(R.drawable.ic_logo);
         imageList.add(R.drawable.ic_logo);
@@ -73,5 +79,6 @@ public class FullPhotoActivity extends AppCompatActivity {
                 child.setLayoutParams(params);
             }
         });
+        NavigationUtils.setChatButtonClickListener(btnChat, this);
     }
 }
