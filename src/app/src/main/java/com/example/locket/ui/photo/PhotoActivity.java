@@ -21,6 +21,7 @@ import androidx.camera.core.ImageCaptureException;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -37,8 +38,6 @@ import com.example.locket.model.User;
 public class PhotoActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
     private User currentUser;
-
-
     private PreviewView previewView;
     private ImageCapture imageCapture;
     private Camera camera;
@@ -56,7 +55,7 @@ public class PhotoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo);
 
-        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        userViewModel = ((MyApplication) getApplication()).getUserViewModel();
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
                 currentUser = user;
@@ -65,10 +64,7 @@ public class PhotoActivity extends AppCompatActivity {
                 Log.e("PhotoActivity", "Không tìm thấy user!");
             }
         });
-        if (currentUser == null) {
-            Log.d("PhotoActivity", "Tải user từ Firestore...");
-            userViewModel.loadUser("125");
-        }
+
 
         previewView = findViewById(R.id.view_finder);
         ImageView btnCapture = findViewById(R.id.btn_capture);
@@ -139,7 +135,6 @@ public class PhotoActivity extends AppCompatActivity {
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                         Intent intent = new Intent(PhotoActivity.this, DetailPhotoActivity.class);
                         intent.putExtra("photo_path", photoFile.getAbsolutePath());
-                        intent.putExtra("user_id", currentUser.getUserId());
                         startActivity(intent);
                     }
 

@@ -56,6 +56,39 @@ public class UserRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    public void getFriendsList(String userId, final FirestoreCallback<List<User>> callback) {
+        getUserById(userId, new FirestoreCallback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                if (user.getFriends() == null || user.getFriends().isEmpty()) {
+                    callback.onSuccess(new ArrayList<>());
+                    return;
+                }
+
+                List<User> friendsList = new ArrayList<>();
+                List<String> friendIds = user.getFriends();
+                for (String friendId : friendIds) {
+                    db.collection(COLLECTION_NAME).document(friendId).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    User friend = documentSnapshot.toObject(User.class);
+                                    friendsList.add(friend);
+                                }
+                                if (friendsList.size() == friendIds.size()) {
+                                    callback.onSuccess(friendsList);
+                                }
+                            })
+                            .addOnFailureListener(callback::onFailure);
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                callback.onFailure(e);
+            }
+        });
+    }
+
     public interface FirestoreCallback<T> {
         void onSuccess(T data);
         void onFailure(Exception e);
