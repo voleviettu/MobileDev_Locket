@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,7 +31,12 @@ import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.view.View;
+
 import com.example.locket.ui.profile.ProfileActivity; // để navigate đến pf
+import com.example.locket.ui.photo.DetailPhotoFriendActivity; // để qua friend phôt
 
 import androidx.lifecycle.ViewModelProvider;
 import com.example.locket.viewmodel.UserViewModel;
@@ -49,6 +56,7 @@ public class PhotoActivity extends AppCompatActivity {
             .build();  // để xoay camera
     private boolean isFlashOn = false;
     private boolean isBackCamera = true;
+    int friendCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +67,16 @@ public class PhotoActivity extends AppCompatActivity {
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
                 currentUser = user;
+                friendCount = currentUser.getFriends() != null ? currentUser.getFriends().size() : 0;
                 Log.d("PhotoActivity", "User hiện tại: " + currentUser.getUsername());
+
+                TextView numFriendsTextView = findViewById(R.id.num_friends);
+                numFriendsTextView.setText(friendCount + " Bạn bè");
             } else {
                 Log.e("PhotoActivity", "Không tìm thấy user!");
             }
         });
+
 
 
         previewView = findViewById(R.id.view_finder);
@@ -78,12 +91,21 @@ public class PhotoActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // chuyển đến ảnh của bạn bè
+        LinearLayout btnFriend = findViewById(R.id.history_container);
+        btnFriend.setOnClickListener(v -> {
+            Intent intent = new Intent(PhotoActivity.this, DetailPhotoFriendActivity.class);
+            startActivity(intent);
+        });
+
+        // upload ảnh từ máy (gold)
         ImageView btnUploadImg = findViewById(R.id.btn_upload);
         btnUploadImg.setOnClickListener(v -> {
             Intent intent = new Intent(PhotoActivity.this, UploadImageActivity.class);
             startActivity(intent);
         });
 
+        // phần chụp ảnh
         if (allPermissionsGranted()) {
             startCamera();
         } else {

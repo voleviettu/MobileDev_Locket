@@ -51,6 +51,7 @@
                 android:layout_marginEnd="6dp"/>
 
             <TextView
+                android:id="@+id/num_friends"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="4 Bạn bè"
