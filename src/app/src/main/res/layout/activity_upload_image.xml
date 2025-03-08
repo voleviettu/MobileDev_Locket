@@ -34,7 +34,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Members have so much more fun on Locket!"
+            android:text="Nâng cấp lên Locket Gold để trải nghiệm!!"
             android:textColor="#AAAAAA"
             android:textSize="14sp"
             android:layout_marginTop="4dp" />
@@ -75,7 +75,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Remove Ads"
+                            android:text="Xoá quảng cáo"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -83,7 +83,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Never see an ad in History!"
+                            android:text="Không bao giờ thấy quảng cáo trong Lịch sử!"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -128,7 +128,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Record short video clips!"
+                            android:text="Quay các đoạn video ngắn"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -164,7 +164,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Custom App Icon"
+                            android:text="Biểu tượng ứng dụng tùy chỉnh"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -172,7 +172,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Decorate your HomeScreen"
+                            android:text="Trang trí màn hình chính của bạn"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -208,7 +208,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Upload from camera roll"
+                            android:text="Tải ảnh lên từ thư viện"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -216,7 +216,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Share memories from your library"
+                            android:text="Chia sẻ kỷ niệm từ thư viện của bạn"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -251,7 +251,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Send longer captions"
+                            android:text="Gửi chú thích dài hơn"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -259,7 +259,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Type even more on your photos!"
+                            android:text="Viết nhiều hơn trên ảnh của bạn!"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -281,7 +281,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Upgrade your Locket  "
+                android:text="Nâng cấp Locket Gold  "
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
                 android:textStyle="bold"/>
@@ -297,7 +297,7 @@
             android:id="@+id/text_no_tks"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No thanks!"
+            android:text="Lần sau nhé, cảm ơn"
             android:textColor="#AAAAAA"
             android:textSize="14sp"
             android:layout_marginTop="12dp"/>
