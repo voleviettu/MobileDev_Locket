@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.text.method.PasswordTransformationMethod;
 import android.widget.TextView;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -46,6 +47,16 @@ public class SignInPassword extends AppCompatActivity {
         passwordToggleImage.setOnClickListener(v -> {
             isPasswordVisible = !isPasswordVisible;
             updatePasswordVisibility();
+        });
+
+        forgotPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Change the button text
+                forgotPassword.setText("Email đổi mật khẩu đã được gửi đi!");
+
+                forgotPassword.setEnabled(false); // Disable the "button" so it can't be clicked again.
+            }
         });
 
         // Password validation (TextWatcher)
