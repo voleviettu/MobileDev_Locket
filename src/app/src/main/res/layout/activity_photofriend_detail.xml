@@ -140,10 +140,11 @@
     <LinearLayout
         android:id="@+id/message_input_container"
         android:layout_width="match_parent"
-        android:layout_height="83dp"
+        android:layout_height="80dp"
         android:layout_below="@id/photo_frame_container"
-        android:layout_marginTop="182dp"
+        android:layout_marginTop="160dp"
         android:background="@drawable/button_oval"
+        android:layout_marginHorizontal="10dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="5dp">
@@ -195,7 +196,7 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_below="@id/message_input_container"
-        android:layout_marginTop="20dp"
+        android:layout_marginVertical="10dp"
         android:gravity="center">
 
         <ImageView

@@ -35,7 +35,7 @@ public class FullChatActivity extends AppCompatActivity {
         chatList.add(new Chat("Rắn", "😍", "3d", R.drawable.ic_profile));
         chatList.add(new Chat("wan min", "hello world", "4d", R.drawable.ic_profile));
         chatList.add(new Chat("Thien", "💛", "5d", R.drawable.ic_profile));
-Ư
+
 
         chatAdapter = new ChatAdapter(chatList);
         recyclerView.setAdapter(chatAdapter);
