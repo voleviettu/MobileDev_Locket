@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.locket.MyApplication;
 import com.example.locket.R;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,24 +21,35 @@ import java.io.IOException;
 
 import com.example.locket.data.CloudinaryUploader;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.SnapHelper;
+
 import com.example.locket.viewmodel.PhotoViewModel;
 import com.example.locket.data.PhotoRepository;
+import com.example.locket.viewmodel.UserViewModel;
 import com.google.firebase.firestore.GeoPoint;
 import android.net.Uri;
 import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-
+import com.example.locket.ui.photo.FriendsAdapter;
+import com.example.locket.model.User;
 
 public class DetailPhotoActivity extends AppCompatActivity {
+    UserViewModel userViewModel;
+    private User currentUser;
+    FriendsAdapter adapter;
+    List<User> friendsList = new ArrayList<>();
     private PhotoViewModel photoViewModel;
-
     private String photoPath;
     private String userId;
     private ImageView photoView;
@@ -45,6 +58,19 @@ public class DetailPhotoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo_detail);
+
+        userViewModel = ((MyApplication) getApplication()).getUserViewModel();
+        userViewModel.getCurrentUser().observe(this, user -> {
+            if (user != null) {
+                currentUser = user;
+                Log.d("DetailPhotoActivity", "User hiện tại: " + currentUser.getUsername());
+                userId = currentUser.getUserId();
+                userViewModel.loadFriends(userId);
+            } else {
+                Log.e("DetailPhotoActivity", "Không tìm thấy user!");
+            }
+        });
+
 
         photoViewModel = new ViewModelProvider(this).get(PhotoViewModel.class);
         photoViewModel.getIsUploading().observe(this, isUploading -> {
@@ -58,7 +84,44 @@ public class DetailPhotoActivity extends AppCompatActivity {
         ImageView btnClose = findViewById(R.id.btn_flash);
         ImageView btnSend = findViewById(R.id.btn_capture);
 
-        userId = getIntent().getStringExtra("user_id");
+        RecyclerView recyclerView = findViewById(R.id.recycler_friends);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        recyclerView.setLayoutManager(layoutManager);
+
+        adapter = new FriendsAdapter(this, friendsList, user -> {
+            Log.d("DetailPhotoActivity", "Chọn gửi đến: " + user.getUsername());
+        });
+        recyclerView.setAdapter(adapter);
+
+
+
+        userViewModel.getFriendsList().observe(this, friends -> {
+            if (friends != null) {
+                friendsList.clear();
+
+                User allUser = new User();
+                allUser.setFirstname("Tất cả");
+                allUser.setAvatar(null);
+                friendsList.add(allUser);
+
+                friendsList.addAll(friends);
+                adapter.notifyDataSetChanged();
+            }
+        });
+
+
+        recyclerView.post(() -> {
+            int sidePadding = recyclerView.getWidth() / 2 - 100;
+            recyclerView.setPadding(sidePadding, 0, sidePadding, 0);
+            recyclerView.setClipToPadding(false);
+            layoutManager.scrollToPositionWithOffset(0, sidePadding);
+        });
+
+        SnapHelper snapHelper = new LinearSnapHelper();
+        snapHelper.attachToRecyclerView(recyclerView);
+
+
 
         photoPath = getIntent().getStringExtra("photo_path");
         if (photoPath != null) {
@@ -71,10 +134,20 @@ public class DetailPhotoActivity extends AppCompatActivity {
         btnDownload.setOnClickListener(v -> savePhotoToGallery());
         btnClose.setOnClickListener(v -> finish());
         // Xử lý sự kiện bấm nút Gửi
-        btnSend.setOnClickListener(v -> uploadPhoto(captionInput.getText().toString()));
+        btnSend.setOnClickListener(v -> {
+            List<String> selectedFriendIds = adapter.getSelectedFriendIds();
+
+            if (selectedFriendIds.isEmpty()) {
+                Toast.makeText(this, "Vui lòng chọn ít nhất một người nhận!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            uploadPhoto(captionInput.getText().toString(), selectedFriendIds);
+        });
+
     }
 
-    private void uploadPhoto(String caption) {
+    private void uploadPhoto(String caption, List<String> receiverIds) {
         if (photoPath == null || userId == null) {
             Toast.makeText(this, "Không có ảnh hoặc user chưa xác định!", Toast.LENGTH_SHORT).show();
             return;
@@ -92,7 +165,7 @@ public class DetailPhotoActivity extends AppCompatActivity {
                 caption,
                 null,
                 null,
-                new ArrayList<>()
+                receiverIds
         );
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             startActivity(new Intent(DetailPhotoActivity.this, PhotoActivity.class));

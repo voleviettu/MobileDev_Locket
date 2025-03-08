@@ -9,6 +9,8 @@ public class User {
     private String email;
     private String phone;
     private String username;
+    private String firstname;
+    private String lastname;
     private String avatar;
     private List<String> friends;
     @ServerTimestamp
@@ -16,11 +18,13 @@ public class User {
 
     public User() {}
 
-    public User(String userId, String email, String phone, String username, String avatar, List<String> friends) {
+    public User(String userId, String email, String phone, String username, String firstname, String lastname, String avatar, List<String> friends) {
         this.userId = userId;
         this.email = email;
         this.phone = phone;
         this.username = username;
+        this.firstname = firstname;
+        this.lastname = lastname;
         this.avatar = avatar;
         this.friends = friends;
     }
@@ -36,6 +40,12 @@ public class User {
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+
+    public String getFirstname() { return firstname; }
+    public void setFirstname(String firstname) { this.firstname = firstname; }
+
+    public String getLastname() { return lastname; }
+    public void setLastname(String lastname) { this.lastname = lastname; }
 
     public String getAvatar() { return avatar; }
     public void setAvatar(String avatar) { this.avatar = avatar; }
