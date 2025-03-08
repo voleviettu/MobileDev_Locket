@@ -37,6 +37,7 @@ import android.view.View;
 
 import com.example.locket.ui.profile.ProfileActivity; // để navigate đến pf
 import com.example.locket.ui.photo.DetailPhotoFriendActivity; // để qua friend phôt
+import com.example.locket.ui.chat.FullChatActivity;
 
 import androidx.lifecycle.ViewModelProvider;
 import com.example.locket.viewmodel.UserViewModel;
@@ -88,6 +89,13 @@ public class PhotoActivity extends AppCompatActivity {
         ImageView btnProfile = findViewById(R.id.btn_profile);
         btnProfile.setOnClickListener(v -> {
             Intent intent = new Intent(PhotoActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
+
+        // chuyển đến chat
+        ImageView btnChat = findViewById(R.id.btn_chat);
+        btnChat.setOnClickListener(v -> {
+            Intent intent = new Intent(PhotoActivity.this, FullChatActivity.class);
             startActivity(intent);
         });
 
