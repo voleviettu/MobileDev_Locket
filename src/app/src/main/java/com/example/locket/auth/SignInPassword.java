@@ -12,18 +12,20 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.text.method.PasswordTransformationMethod;
 import android.widget.TextView;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.locket.R;
 
-public class SignUpPassword extends AppCompatActivity {
+public class SignInPassword extends AppCompatActivity {
 
     private EditText passwordEditText;
     private ImageView passwordToggleImage;
     private Button continueButton;
 
+    private Button forgotPassword;
     private ImageButton backButton;
 
     private boolean isPasswordVisible = false; // Keep track of visibility
@@ -31,12 +33,13 @@ public class SignUpPassword extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.signup_password);
+        setContentView(R.layout.signin_password);
 
         passwordEditText = findViewById(R.id.input_password);
         passwordToggleImage = findViewById(R.id.password_toggle_image);
         continueButton = findViewById(R.id.button_continue);
         backButton = findViewById(R.id.button_back);
+        forgotPassword = findViewById(R.id.forgot_password);
 
         passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
@@ -44,6 +47,16 @@ public class SignUpPassword extends AppCompatActivity {
         passwordToggleImage.setOnClickListener(v -> {
             isPasswordVisible = !isPasswordVisible;
             updatePasswordVisibility();
+        });
+
+        forgotPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Change the button text
+                forgotPassword.setText("Email đổi mật khẩu đã được gửi đi!");
+
+                forgotPassword.setEnabled(false); // Disable the "button" so it can't be clicked again.
+            }
         });
 
         // Password validation (TextWatcher)
@@ -56,12 +69,12 @@ public class SignUpPassword extends AppCompatActivity {
                 String password = s.toString();
                 if (password.length() >= 8) {
                     continueButton.setEnabled(true);
-                    continueButton.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(SignUpPassword.this, R.color.button)));
-                    continueButton.setTextColor(ContextCompat.getColor(SignUpPassword.this, R.color.black));
+                    continueButton.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(SignInPassword.this, R.color.button)));
+                    continueButton.setTextColor(ContextCompat.getColor(SignInPassword.this, R.color.black));
                 } else {
                     continueButton.setEnabled(false);
-                    continueButton.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(SignUpPassword.this, R.color.gray_light)));
-                    continueButton.setTextColor(ContextCompat.getColor(SignUpPassword.this, R.color.black));
+                    continueButton.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(SignInPassword.this, R.color.gray_light)));
+                    continueButton.setTextColor(ContextCompat.getColor(SignInPassword.this, R.color.black));
                 }
             }
 
@@ -74,8 +87,8 @@ public class SignUpPassword extends AppCompatActivity {
             String password = passwordEditText.getText().toString();
             String email = getIntent().getStringExtra("email"); // Get email from previous activity
 
-            // Launch SignUpFullName
-            Intent intent = new Intent(SignUpPassword.this, SignUpFullName.class);
+            // Chưa đổi next activity!!!!!!!!!!!!!!!!!!!
+            Intent intent = new Intent(SignInPassword.this, SignUpFullName.class);
             intent.putExtra("email", email);
             intent.putExtra("password", password);
             startActivity(intent);

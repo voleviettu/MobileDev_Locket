@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat; // Import ContextCompat
 
 import com.example.locket.R;
 
-public class SignUpEmail extends AppCompatActivity {
+public class SignInEmail extends AppCompatActivity {
 
     private EditText emailEditText;
     private Button continueButton;
@@ -31,7 +31,7 @@ public class SignUpEmail extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.signup_email); // The XML layout file
+        setContentView(R.layout.signin_email); // The XML layout file
 
         // Find the views by their IDs
         emailEditText = findViewById(R.id.input_email);
@@ -52,19 +52,19 @@ public class SignUpEmail extends AppCompatActivity {
             }
         });
 
-        // Set click listener for the Back button
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(SignUpEmail.this, WelcomeActivity.class));
+                startActivity(new Intent(SignInEmail.this, WelcomeActivity.class));
                 finish();
             }
         });
+
         termTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //TODO: show term and condition.
-                Toast.makeText(SignUpEmail.this, "Show Term and Condition", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SignInEmail.this, "Show Term and Condition", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -102,7 +102,7 @@ public class SignUpEmail extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
 
         // No need to re-validate here
-        Intent intent = new Intent(SignUpEmail.this, SignUpPassword.class);
+        Intent intent = new Intent(SignInEmail.this, SignInPassword.class);
         intent.putExtra("email", email);
         startActivity(intent);
     }

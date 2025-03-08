@@ -5,10 +5,10 @@
       <SelectionState runConfigName="Locket.app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="SignUpEmail">
+      <SelectionState runConfigName="MainActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="MainActivity">
+      <SelectionState runConfigName="Authen">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
