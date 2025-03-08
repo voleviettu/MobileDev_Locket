@@ -28,7 +28,12 @@ public class WelcomeActivity extends AppCompatActivity {
             finish();
         };
 
+        View.OnClickListener goToSignInEmail = v -> {
+            startActivity(new Intent(WelcomeActivity.this, SignInEmail.class));
+            finish();
+        };
+
         btnRegister.setOnClickListener(goToSignUpEmail);
-        btnLogin.setOnClickListener(goToPhoto);
+        btnLogin.setOnClickListener(goToSignInEmail);
     }
 }
