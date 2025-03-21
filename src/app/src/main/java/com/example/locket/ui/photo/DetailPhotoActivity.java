@@ -27,10 +27,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.SnapHelper;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.locket.viewmodel.PhotoViewModel;
 import com.example.locket.data.PhotoRepository;
 import com.example.locket.viewmodel.UserViewModel;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.firestore.GeoPoint;
 import android.net.Uri;
 import android.widget.Toast;
@@ -53,6 +56,7 @@ public class DetailPhotoActivity extends AppCompatActivity {
     private String photoPath;
     private String userId;
     private ImageView photoView;
+    private ViewPager2 viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +87,16 @@ public class DetailPhotoActivity extends AppCompatActivity {
         ImageView btnDownload = findViewById(R.id.btn_download);
         ImageView btnClose = findViewById(R.id.btn_flash);
         ImageView btnSend = findViewById(R.id.btn_capture);
+
+        viewPager = findViewById(R.id.view_pager);
+        if (viewPager == null) {
+            Log.e("DetailPhotoActivity", "ViewPager2 bị null!");
+            return;
+        }
+
+        OptionsPagerAdapter optionAdapter = new OptionsPagerAdapter(this);
+        viewPager.setAdapter(optionAdapter);
+
 
         RecyclerView recyclerView = findViewById(R.id.recycler_friends);
 
@@ -129,7 +143,6 @@ public class DetailPhotoActivity extends AppCompatActivity {
             Bitmap rotatedBitmap = rotateImageIfRequired(bitmap, photoPath);
             photoView.setImageBitmap(rotatedBitmap);
         }
-        EditText captionInput = findViewById(R.id.message_input);
 
         btnDownload.setOnClickListener(v -> savePhotoToGallery());
         btnClose.setOnClickListener(v -> finish());
@@ -142,7 +155,15 @@ public class DetailPhotoActivity extends AppCompatActivity {
                 return;
             }
 
-            uploadPhoto(captionInput.getText().toString(), selectedFriendIds);
+            //EditText captionInput = optionAdapter.getMessageInput();
+            //if (captionInput != null) {
+            //    String message = captionInput.getText().toString();
+            //    uploadPhoto(message, selectedFriendIds);
+            //} else {
+            //    Toast.makeText(this, "Không thể lấy nội dung tin nhắn!", Toast.LENGTH_SHORT).show();
+            //}
+            uploadPhoto("message", selectedFriendIds);
+
         });
 
     }
