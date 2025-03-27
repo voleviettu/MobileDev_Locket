@@ -44,14 +44,15 @@ public class PhotoViewModel extends ViewModel {
     }
 
 
-    public void uploadPhoto(Context context, Uri fileUri, String userId, String caption, String musicUrl, GeoPoint location, List<String> receivers) {
+    public void uploadPhoto(Context context, Uri fileUri, String userId, String caption, String musicUrl, String location, java.util.function.Consumer<String> onSuccessPhotoId) {
         isUploading.setValue(true);
 
-        photoRepository.uploadAndSavePhoto(context, fileUri, userId, caption, musicUrl, location, receivers, new PhotoRepository.FirestoreCallback<String>() {
+        photoRepository.uploadAndSavePhoto(context, fileUri, userId, caption, musicUrl, location, new PhotoRepository.FirestoreCallback<String>() {
             @Override
-            public void onSuccess(String imageUrl) {
+            public void onSuccess(String photoId) {
                 isUploading.setValue(false);
                 loadUserPhotos(userId);
+                onSuccessPhotoId.accept(photoId);
             }
 
             @Override

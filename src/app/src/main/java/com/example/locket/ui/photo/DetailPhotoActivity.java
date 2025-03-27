@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,33 +18,31 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import com.example.locket.data.CloudinaryUploader;
-
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.SnapHelper;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.locket.model.SharedPhoto;
 import com.example.locket.viewmodel.PhotoViewModel;
-import com.example.locket.data.PhotoRepository;
+import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
-import com.google.firebase.firestore.GeoPoint;
-import android.net.Uri;
-import android.widget.Toast;
-import java.io.File;
+import com.example.locket.viewmodel.FriendViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-import com.example.locket.ui.photo.FriendsAdapter;
 import com.example.locket.model.User;
 
 public class DetailPhotoActivity extends AppCompatActivity {
-    UserViewModel userViewModel;
+    private UserViewModel userViewModel;
+    private FriendViewModel friendViewModel;
+    private SharedPhotoViewModel sharedPhotoViewModel;
     private User currentUser;
     FriendsAdapter adapter;
     List<User> friendsList = new ArrayList<>();
@@ -53,6 +50,7 @@ public class DetailPhotoActivity extends AppCompatActivity {
     private String photoPath;
     private String userId;
     private ImageView photoView;
+    private ViewPager2 viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,12 +58,15 @@ public class DetailPhotoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_photo_detail);
 
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
+        friendViewModel = new ViewModelProvider(this).get(FriendViewModel.class);
+        sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
+
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
                 currentUser = user;
                 Log.d("DetailPhotoActivity", "User hiện tại: " + currentUser.getUsername());
-                userId = currentUser.getUserId();
-                userViewModel.loadFriends(userId);
+                userId = currentUser.getUid();
+                friendViewModel.loadFriends(userId);
             } else {
                 Log.e("DetailPhotoActivity", "Không tìm thấy user!");
             }
@@ -84,6 +85,16 @@ public class DetailPhotoActivity extends AppCompatActivity {
         ImageView btnClose = findViewById(R.id.btn_flash);
         ImageView btnSend = findViewById(R.id.btn_capture);
 
+        viewPager = findViewById(R.id.view_pager);
+        if (viewPager == null) {
+            Log.e("DetailPhotoActivity", "ViewPager2 bị null!");
+            return;
+        }
+
+        OptionsPagerAdapter optionAdapter = new OptionsPagerAdapter(this);
+        viewPager.setAdapter(optionAdapter);
+
+
         RecyclerView recyclerView = findViewById(R.id.recycler_friends);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -96,7 +107,7 @@ public class DetailPhotoActivity extends AppCompatActivity {
 
 
 
-        userViewModel.getFriendsList().observe(this, friends -> {
+        friendViewModel.getFriends().observe(this, friends -> {
             if (friends != null) {
                 friendsList.clear();
 
@@ -129,7 +140,6 @@ public class DetailPhotoActivity extends AppCompatActivity {
             Bitmap rotatedBitmap = rotateImageIfRequired(bitmap, photoPath);
             photoView.setImageBitmap(rotatedBitmap);
         }
-        EditText captionInput = findViewById(R.id.message_input);
 
         btnDownload.setOnClickListener(v -> savePhotoToGallery());
         btnClose.setOnClickListener(v -> finish());
@@ -142,7 +152,15 @@ public class DetailPhotoActivity extends AppCompatActivity {
                 return;
             }
 
-            uploadPhoto(captionInput.getText().toString(), selectedFriendIds);
+            //EditText captionInput = optionAdapter.getMessageInput();
+            //if (captionInput != null) {
+            //    String message = captionInput.getText().toString();
+            //    uploadPhoto(message, selectedFriendIds);
+            //} else {
+            //    Toast.makeText(this, "Không thể lấy nội dung tin nhắn!", Toast.LENGTH_SHORT).show();
+            //}
+            uploadPhoto("message", selectedFriendIds);
+
         });
 
     }
@@ -165,13 +183,14 @@ public class DetailPhotoActivity extends AppCompatActivity {
                 caption,
                 null,
                 null,
-                receiverIds
+                photoId -> {
+                    sharedPhotoViewModel.sharePhoto(photoId, userId, friendsList, receiverIds);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        startActivity(new Intent(DetailPhotoActivity.this, PhotoActivity.class));
+                        finish();
+                    }, 1000);
+                }
         );
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            startActivity(new Intent(DetailPhotoActivity.this, PhotoActivity.class));
-            finish();
-        }, 1000);
-
     }
 
     private Bitmap rotateImageIfRequired(Bitmap bitmap, String photoPath) {

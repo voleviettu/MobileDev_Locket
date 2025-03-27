@@ -154,12 +154,12 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.FriendVi
 
         if (isAllSelected) {
             for (int i = 1; i < friendsList.size(); i++) {
-                selectedIds.add(friendsList.get(i).getUserId());
+                selectedIds.add(friendsList.get(i).getUid());
             }
         } else {
             for (int pos : selectedPositions) {
                 if (pos > 0) {
-                    selectedIds.add(friendsList.get(pos).getUserId());
+                    selectedIds.add(friendsList.get(pos).getUid());
                 }
             }
         }

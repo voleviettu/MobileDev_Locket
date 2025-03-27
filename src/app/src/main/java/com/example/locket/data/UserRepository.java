@@ -21,7 +21,7 @@ public class UserRepository {
 
     public void saveUser(User user) {
         db.collection(COLLECTION_NAME)
-                .document(user.getUserId())
+                .document(user.getUid())
                 .set(user)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "User đã được lưu thành công!"))
                 .addOnFailureListener(e -> Log.e(TAG, "Lỗi khi lưu User", e));
@@ -43,8 +43,8 @@ public class UserRepository {
                 });
     }
 
-    public void getUserById(String userId, final FirestoreCallback<User> callback) {
-        db.collection(COLLECTION_NAME).document(userId).get()
+    public void getUserById(String uid, final FirestoreCallback<User> callback) {
+        db.collection(COLLECTION_NAME).document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         User user = documentSnapshot.toObject(User.class);
@@ -54,39 +54,6 @@ public class UserRepository {
                     }
                 })
                 .addOnFailureListener(callback::onFailure);
-    }
-
-    public void getFriendsList(String userId, final FirestoreCallback<List<User>> callback) {
-        getUserById(userId, new FirestoreCallback<User>() {
-            @Override
-            public void onSuccess(User user) {
-                if (user.getFriends() == null || user.getFriends().isEmpty()) {
-                    callback.onSuccess(new ArrayList<>());
-                    return;
-                }
-
-                List<User> friendsList = new ArrayList<>();
-                List<String> friendIds = user.getFriends();
-                for (String friendId : friendIds) {
-                    db.collection(COLLECTION_NAME).document(friendId).get()
-                            .addOnSuccessListener(documentSnapshot -> {
-                                if (documentSnapshot.exists()) {
-                                    User friend = documentSnapshot.toObject(User.class);
-                                    friendsList.add(friend);
-                                }
-                                if (friendsList.size() == friendIds.size()) {
-                                    callback.onSuccess(friendsList);
-                                }
-                            })
-                            .addOnFailureListener(callback::onFailure);
-                }
-            }
-
-            @Override
-            public void onFailure(Exception e) {
-                callback.onFailure(e);
-            }
-        });
     }
 
     public interface FirestoreCallback<T> {
