@@ -19,7 +19,7 @@ public class PhotoRepository {
         db = FirebaseFirestore.getInstance();
     }
 
-    public void uploadAndSavePhoto(Context context, Uri fileUri, String userId, String caption, String musicUrl, GeoPoint location, List<String> receivers, FirestoreCallback<String> callback) {
+    public void uploadAndSavePhoto(Context context, Uri fileUri, String userId, String caption, String musicUrl, String location, FirestoreCallback<String> callback) {
         new Thread(() -> {
             try {
                 // dùng hàm từ cloudinaryUploader
@@ -30,7 +30,7 @@ public class PhotoRepository {
                 }
 
                 String photoId = UUID.randomUUID().toString();
-                Photo newPhoto = new Photo(photoId, userId, imageUrl, caption, musicUrl, location, receivers);
+                Photo newPhoto = new Photo(photoId, userId, imageUrl, caption, musicUrl, location);
 
                 // lưu thông tin ảnh vào Firestore
                 db.collection(COLLECTION_NAME)
@@ -38,7 +38,7 @@ public class PhotoRepository {
                         .set(newPhoto)
                         .addOnSuccessListener(aVoid -> {
                             Log.d(TAG, "Lưu Photo vào Firestore thành công");
-                            callback.onSuccess(imageUrl);
+                            callback.onSuccess(photoId);
                         })
                         .addOnFailureListener(callback::onFailure);
 

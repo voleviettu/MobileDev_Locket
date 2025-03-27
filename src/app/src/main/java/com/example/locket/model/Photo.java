@@ -1,9 +1,7 @@
 package com.example.locket.model;
 
-import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ServerTimestamp;
 import java.util.Date;
-import java.util.List;
 
 public class Photo {
     private String photoId;
@@ -11,22 +9,20 @@ public class Photo {
     private String imageUrl;
     private String caption;
     private String musicUrl;
-    private GeoPoint location;
-    private List<String> receivers;
+    private String location;
 
     @ServerTimestamp
     private Date createdAt;
 
     public Photo() {}
 
-    public Photo(String photoId, String userId, String imageUrl, String caption, String musicUrl, GeoPoint location, List<String> receivers) {
+    public Photo(String photoId, String userId, String imageUrl, String caption, String musicUrl, String location) {
         this.photoId = photoId;
         this.userId = userId;
         this.imageUrl = imageUrl;
         this.caption = caption;
         this.musicUrl = musicUrl;
         this.location = location;
-        this.receivers = receivers;
     }
 
     public String getPhotoId() { return photoId; }
@@ -44,11 +40,8 @@ public class Photo {
     public String getMusicUrl() { return musicUrl; }
     public void setMusicUrl(String musicUrl) { this.musicUrl = musicUrl; }
 
-    public GeoPoint getLocation() { return location; }
-    public void setLocation(GeoPoint location) { this.location = location; }
-
-    public List<String> getReceivers() { return receivers; }
-    public void setReceivers(List<String> receivers) { this.receivers = receivers; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }

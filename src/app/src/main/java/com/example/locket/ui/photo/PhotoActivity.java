@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,10 +40,12 @@ import com.example.locket.ui.chat.FullChatActivity;
 
 import androidx.lifecycle.ViewModelProvider;
 import com.example.locket.viewmodel.UserViewModel;
+import com.example.locket.viewmodel.FriendViewModel;
 import com.example.locket.model.User;
 
 public class PhotoActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
+    private FriendViewModel friendViewModel;
     private User currentUser;
     private PreviewView previewView;
     private ImageCapture imageCapture;
@@ -65,14 +66,19 @@ public class PhotoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_photo);
 
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
+        friendViewModel = new ViewModelProvider(this).get(FriendViewModel.class);
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
                 currentUser = user;
-                friendCount = currentUser.getFriends() != null ? currentUser.getFriends().size() : 0;
-                Log.d("PhotoActivity", "User hiện tại: " + currentUser.getUsername());
+                friendViewModel.loadFriends(currentUser.getUid());
+                friendViewModel.getFriends().observe(this, friends -> {
+                    int friendCount = friends != null ? friends.size() : 0;
 
-                TextView numFriendsTextView = findViewById(R.id.num_friends);
-                numFriendsTextView.setText(friendCount + " Bạn bè");
+                    TextView numFriendsTextView = findViewById(R.id.num_friends);
+                    numFriendsTextView.setText(friendCount + " Bạn bè");
+                });
+
+                Log.d("PhotoActivity", "User hiện tại: " + currentUser.getUsername());
             } else {
                 Log.e("PhotoActivity", "Không tìm thấy user!");
             }

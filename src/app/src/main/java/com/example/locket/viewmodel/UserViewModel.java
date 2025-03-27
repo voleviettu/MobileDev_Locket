@@ -15,7 +15,6 @@ import java.util.List;
 public class UserViewModel extends AndroidViewModel {
     private UserRepository userRepository;
     private static MutableLiveData<User> currentUser = new MutableLiveData<>();
-    private MutableLiveData<List<User>> friendsList = new MutableLiveData<>();
 
     public UserViewModel(@NonNull Application application) {
         super(application);
@@ -25,11 +24,6 @@ public class UserViewModel extends AndroidViewModel {
     public LiveData<User> getCurrentUser() {
         return currentUser;
     }
-
-    public LiveData<List<User>> getFriendsList() {
-        return friendsList;
-    }
-
     public void loadUser(String userId) {
         if (currentUser.getValue() == null) {
             userRepository.getUserById(userId, new UserRepository.FirestoreCallback<User>() {
@@ -43,19 +37,6 @@ public class UserViewModel extends AndroidViewModel {
                 }
             });
         }
-    }
-
-    public void loadFriends(String userId) {
-        userRepository.getFriendsList(userId, new UserRepository.FirestoreCallback<List<User>>() {
-            @Override
-            public void onSuccess(List<User> friends) {
-                friendsList.setValue(friends);
-            }
-            @Override
-            public void onFailure(Exception e) {
-                friendsList.setValue(new ArrayList<>());
-            }
-        });
     }
 }
 
