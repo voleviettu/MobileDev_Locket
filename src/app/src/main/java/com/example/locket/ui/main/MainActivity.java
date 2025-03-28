@@ -39,10 +39,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, WelcomeActivity.class));
             finish();
 
-            //signup("khahhy@gmail.com", "12345678", "ohno", "tran", "` hy");
+            //signup("baalo@gmail.com", "12345678", "ahee", "atrann", "ahu ahy");
             //Log.d("MainActivity", "tạm signup thử trong main");
 
-            //login("cattuongtrantran@gmail.com", "12345678");
+            //login("alo@gmail.com", "12345678");
             //Log.d("MainActivity", "tạm login thử trong main");
 
             return;
@@ -80,16 +80,23 @@ public class MainActivity extends AppCompatActivity {
                 .createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        FirebaseUser user = task.getResult().getUser();
-                        Log.d("MainActivity", "signup thanh cong: " + user.getUid());
+                        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
-                        User newUser = new User(user.getUid(), user.getEmail(), firstname, lastname, username, "", false);
-                        new UserRepository().saveUser(newUser);
+                        if (firebaseUser != null) {
+                            Log.d("MainActivity", "signup thanh cong: " + firebaseUser.getUid());
+
+                            User newUser = new User(firebaseUser.getUid(), firebaseUser.getEmail(), firstname, lastname, username,"", false);
+
+                            new UserRepository().saveUser(newUser);
+                        } else {
+                            Log.e("MainActivity", "firebaseUser null sau signup");
+                        }
                     } else {
                         Log.e("MainActivity", "signup that bai", task.getException());
                     }
                 });
     }
+
 
     // tạm bợ hàm login
     private void login(String email, String password) {
