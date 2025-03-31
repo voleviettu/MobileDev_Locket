@@ -51,5 +51,8 @@
         android:horizontalSpacing="4dp"
         android:verticalSpacing="4dp"
         android:stretchMode="columnWidth"
-        android:gravity="center"/>
+        android:gravity="center"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:clickable="true"/>
 </RelativeLayout>
