@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
             //login("alo@gmail.com", "12345678");
             //Log.d("MainActivity", "tạm login thử trong main");
 
+            //signup("thuythanhluu161@gmail.com", "12345678", "thuy", "luu", "ltthuy161");
+
             return;
         }
 
