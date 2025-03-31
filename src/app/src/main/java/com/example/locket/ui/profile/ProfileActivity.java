@@ -33,6 +33,11 @@ public class ProfileActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
 
         // Xử lý sự kiện chỉnh sửa hồ sơ (mở màn hình chỉnh sửa)
+        btnEditProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, EditNameActivity.class);
+            startActivity(intent);
+        });
+
         ImageView btnSettings = findViewById(R.id.btn_settings);
         btnSettings.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
