@@ -16,5 +16,7 @@
     <string name="username_hint">Username</string>
     <string name="password_title_2">Điền mật khẩu của bạn</string>
     <string name="forgot_password">Bạn đã quên mật khẩu?</string>
+    <string name="signup_btn">Đăng ký</string>
+    <string name="signin_btn">Đăng nhập</string>
 
 </resources>
