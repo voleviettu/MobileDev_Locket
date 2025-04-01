@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
             //signup("baalo@gmail.com", "12345678", "ahee", "atrann", "ahu ahy");
             //Log.d("MainActivity", "tạm signup thử trong main");
 
-            //login("alo@gmail.com", "12345678");
+            //login("cattuongtrantran@gmail.com", "12345678");
             //Log.d("MainActivity", "tạm login thử trong main");
 
             //signup("thuythanhluu161@gmail.com", "12345678", "thuy", "luu", "ltthuy161");
