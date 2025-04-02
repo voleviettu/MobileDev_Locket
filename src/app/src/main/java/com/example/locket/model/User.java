@@ -1,5 +1,6 @@
 package com.example.locket.model;
 
+import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
 import java.util.Date;
 
@@ -56,4 +57,20 @@ public class User {
 
     public Date getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
+
+    @Exclude // Đánh dấu để Firestore không cố lưu trường này
+    public String getFullName() {
+        String first = (firstname != null) ? firstname.trim() : "";
+        String last = (lastname != null) ? lastname.trim() : "";
+
+        if (!first.isEmpty() && !last.isEmpty()) {
+            return first + " " + last;
+        } else if (!first.isEmpty()) {
+            return first;
+        } else if (!last.isEmpty()) {
+            return last;
+        } else {
+            return (username != null) ? username : "";
+        }
+    }
 }
