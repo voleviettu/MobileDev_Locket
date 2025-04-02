@@ -3,9 +3,11 @@ package com.example.locket.data;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+
 import com.example.locket.model.Photo;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Query;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -13,7 +15,7 @@ import java.util.UUID;
 public class PhotoRepository {
     private static final String TAG = "PhotoRepository";
     private static final String COLLECTION_NAME = "photos";
-    private FirebaseFirestore db;
+    private final FirebaseFirestore db;
 
     public PhotoRepository() {
         db = FirebaseFirestore.getInstance();
@@ -22,7 +24,6 @@ public class PhotoRepository {
     public void uploadAndSavePhoto(Context context, Uri fileUri, String userId, String caption, String musicUrl, String location, FirestoreCallback<String> callback) {
         new Thread(() -> {
             try {
-                // dùng hàm từ cloudinaryUploader
                 String imageUrl = CloudinaryUploader.uploadImage(context, fileUri);
                 if (imageUrl == null) {
                     callback.onFailure(new Exception("Upload ảnh lên Cloudinary thất bại"));
@@ -32,7 +33,6 @@ public class PhotoRepository {
                 String photoId = UUID.randomUUID().toString();
                 Photo newPhoto = new Photo(photoId, userId, imageUrl, caption, musicUrl, location);
 
-                // lưu thông tin ảnh vào Firestore
                 db.collection(COLLECTION_NAME)
                         .document(photoId)
                         .set(newPhoto)
@@ -41,7 +41,6 @@ public class PhotoRepository {
                             callback.onSuccess(photoId);
                         })
                         .addOnFailureListener(callback::onFailure);
-
             } catch (Exception e) {
                 callback.onFailure(e);
             }
@@ -51,6 +50,7 @@ public class PhotoRepository {
     public void getPhotosByUser(String userId, FirestoreCallback<List<Photo>> callback) {
         db.collection(COLLECTION_NAME)
                 .whereEqualTo("userId", userId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Photo> photoList = new ArrayList<>();
@@ -59,6 +59,28 @@ public class PhotoRepository {
                         photoList.add(photo);
                     }
                     callback.onSuccess(photoList);
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+
+    public void getPhotosByIds(List<String> photoIds, FirestoreCallback<List<Photo>> callback) {
+        if (photoIds.isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        db.collection(COLLECTION_NAME)
+                .whereIn("photoId", photoIds)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Photo> photos = new ArrayList<>();
+                    for (var doc : queryDocumentSnapshots) {
+                        Photo photo = doc.toObject(Photo.class);
+                        photos.add(photo);
+                    }
+
+                    photos.sort((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()));
+                    callback.onSuccess(photos);
                 })
                 .addOnFailureListener(callback::onFailure);
     }

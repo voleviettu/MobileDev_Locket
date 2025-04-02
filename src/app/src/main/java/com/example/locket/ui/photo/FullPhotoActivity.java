@@ -1,19 +1,26 @@
 package com.example.locket.ui.photo;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.locket.R;
-import com.example.locket.ui.settings.ImageAdapter;
-import com.example.locket.utils.NavigationUtils;
 
+import com.example.locket.R;
+import com.example.locket.model.Photo;
+import com.example.locket.ui.settings.ImageAdapter; // Giả sử ImageAdapter đã được điều chỉnh
+import com.example.locket.utils.NavigationUtils;
+import com.example.locket.viewmodel.SharedPhotoViewModel;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.ConnectionResult;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,41 +28,50 @@ public class FullPhotoActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ImageAdapter imageAdapter;
-    private List<Integer> imageList;
-
+    private List<Photo> photoList;
     private ImageView btnChat;
+    private SharedPhotoViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        int status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
+        if (status != ConnectionResult.SUCCESS) {
+            Log.e("GooglePlayServices", "Google Play Services không khả dụng");
+            Toast.makeText(this, "Google Play Services không khả dụng", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_fullphoto);
 
         recyclerView = findViewById(R.id.recyclerView);
         btnChat = findViewById(R.id.btn_chat);
-        imageList = new ArrayList<>();
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
-        imageList.add(R.drawable.ic_logo);
 
-        imageAdapter = new ImageAdapter(this, imageList);
+        viewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
+
+        photoList = new ArrayList<>();
+        imageAdapter = new ImageAdapter(this, photoList);
         recyclerView.setAdapter(imageAdapter);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
         recyclerView.setLayoutManager(gridLayoutManager);
+
+        String currentUserId = "6AFqeqFFK9QoWkHSW4iQ7XXKlgK2";
+
+        viewModel.getSharedPhotos(currentUserId).observe(this, photos -> {
+            if (photos != null && !photos.isEmpty()) {
+                imageAdapter.updatePhotos(photos);
+            } else {
+                imageAdapter.updatePhotos(new ArrayList<>()); // Xóa danh sách nếu không có ảnh
+                Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        viewModel.getErrorMessage().observe(this, error -> {
+            if (error != null) {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+            }
+        });
 
         recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
             @Override
@@ -75,10 +91,12 @@ public class FullPhotoActivity extends AppCompatActivity {
             for (int i = 0; i < recyclerView.getChildCount(); i++) {
                 View child = recyclerView.getChildAt(i);
                 ViewGroup.LayoutParams params = child.getLayoutParams();
-                params.height = width;
+                params.height = width; // Đảm bảo ảnh vuông
                 child.setLayoutParams(params);
             }
         });
+
+        // Gán sự kiện cho nút chat
         NavigationUtils.setChatButtonClickListener(btnChat, this);
     }
 }
