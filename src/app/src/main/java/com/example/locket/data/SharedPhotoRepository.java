@@ -18,18 +18,33 @@ public class SharedPhotoRepository {
                 .addOnSuccessListener(docRef -> Log.d(TAG, "Ảnh đã chia sẻ tới: " + receiverId))
                 .addOnFailureListener(e -> Log.e(TAG, "Lỗi chia sẻ ảnh", e));
     }
-    public void getSharedPhotos(String receiverId, PhotoRepository.FirestoreCallback<List<String>> callback) {
+    public void getSharedPhotos(String userId, PhotoRepository.FirestoreCallback<List<String>> callback) {
         db.collection(COLLECTION_NAME)
-                .whereEqualTo("receiverId", receiverId)
+                .whereIn("receiverId", List.of(userId))
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addOnSuccessListener(receiverSnapshots -> {
                     List<String> photoIds = new ArrayList<>();
-                    for (var doc : queryDocumentSnapshots) {
+
+                    for (var doc : receiverSnapshots) {
                         SharedPhoto sharedPhoto = doc.toObject(SharedPhoto.class);
                         photoIds.add(sharedPhoto.getPhotoId());
                     }
-                    callback.onSuccess(photoIds);
+
+                    db.collection(COLLECTION_NAME)
+                            .whereEqualTo("senderId", userId)
+                            .get()
+                            .addOnSuccessListener(senderSnapshots -> {
+                                for (var doc : senderSnapshots) {
+                                    SharedPhoto sharedPhoto = doc.toObject(SharedPhoto.class);
+                                    if (!photoIds.contains(sharedPhoto.getPhotoId())) {
+                                        photoIds.add(sharedPhoto.getPhotoId());
+                                    }
+                                }
+                                callback.onSuccess(photoIds);
+                            })
+                            .addOnFailureListener(callback::onFailure);
                 })
                 .addOnFailureListener(callback::onFailure);
     }
+
 }

@@ -14,40 +14,68 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.model.Photo;
+import com.example.locket.model.User;
 import com.example.locket.ui.settings.ImageAdapter; // Giả sử ImageAdapter đã được điều chỉnh
 import com.example.locket.utils.NavigationUtils;
+import com.example.locket.viewmodel.FriendViewModel;
 import com.example.locket.viewmodel.SharedPhotoViewModel;
+import com.example.locket.viewmodel.UserViewModel;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.ConnectionResult;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FullPhotoActivity extends AppCompatActivity {
+    private UserViewModel userViewModel;
 
+    private SharedPhotoViewModel sharedPhotoViewModel;
+    private User currentUser;
+    private String userId;
     private RecyclerView recyclerView;
     private ImageAdapter imageAdapter;
     private List<Photo> photoList;
     private ImageView btnChat;
-    private SharedPhotoViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_fullphoto);
         int status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
         if (status != ConnectionResult.SUCCESS) {
-            Log.e("GooglePlayServices", "Google Play Services không khả dụng");
+            Log.e("FullPhotoActivity", "Google Play Services không khả dụng");
             Toast.makeText(this, "Google Play Services không khả dụng", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
-        setContentView(R.layout.activity_fullphoto);
+
+        userViewModel = ((MyApplication) getApplication()).getUserViewModel();
+
+        sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
+
+        userViewModel.getCurrentUser().observe(this, user -> {
+            if (user != null) {
+                currentUser = user;
+                userId = user.getUid();
+
+                sharedPhotoViewModel.getSharedPhotos(userId).observe(this, photos -> {
+                    if (photos != null && !photos.isEmpty()) {
+                        imageAdapter.updatePhotos(photos);
+                    } else {
+                        imageAdapter.updatePhotos(new ArrayList<>());
+                        Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Log.e("FullPhotoActivity", "Không tìm thấy user!");
+            }
+        });
+
 
         recyclerView = findViewById(R.id.recyclerView);
         btnChat = findViewById(R.id.btn_chat);
-
-        viewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
 
         photoList = new ArrayList<>();
         imageAdapter = new ImageAdapter(this, photoList);
@@ -56,18 +84,8 @@ public class FullPhotoActivity extends AppCompatActivity {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
         recyclerView.setLayoutManager(gridLayoutManager);
 
-        String currentUserId = "6AFqeqFFK9QoWkHSW4iQ7XXKlgK2";
 
-        viewModel.getSharedPhotos(currentUserId).observe(this, photos -> {
-            if (photos != null && !photos.isEmpty()) {
-                imageAdapter.updatePhotos(photos);
-            } else {
-                imageAdapter.updatePhotos(new ArrayList<>()); // Xóa danh sách nếu không có ảnh
-                Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        viewModel.getErrorMessage().observe(this, error -> {
+        sharedPhotoViewModel.getErrorMessage().observe(this, error -> {
             if (error != null) {
                 Toast.makeText(this, error, Toast.LENGTH_LONG).show();
             }

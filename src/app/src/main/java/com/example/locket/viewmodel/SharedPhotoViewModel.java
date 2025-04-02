@@ -19,9 +19,9 @@ public class SharedPhotoViewModel extends ViewModel {
     private final MutableLiveData<List<Photo>> sharedPhotos = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
-    public SharedPhotoViewModel(SharedPhotoRepository repository, PhotoRepository photoRepo) {
-        this.repository = repository;
-        this.photoRepo = photoRepo;
+    public SharedPhotoViewModel() {
+        this.repository = new SharedPhotoRepository();
+        this.photoRepo = new PhotoRepository();
     }
 
     public LiveData<List<Photo>> getSharedPhotos(String userId) {
@@ -51,6 +51,7 @@ public class SharedPhotoViewModel extends ViewModel {
                 errorMessage.setValue("Không thể lấy danh sách ảnh được chia sẻ: " + e.getMessage());
             }
         });
+
         return sharedPhotos;
     }
 
