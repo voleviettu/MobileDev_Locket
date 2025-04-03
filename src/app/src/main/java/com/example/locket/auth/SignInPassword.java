@@ -19,8 +19,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import com.example.locket.MyApplication;
 import com.example.locket.R;
+import com.example.locket.data.UserRepository;
+import com.example.locket.model.User;
 import com.example.locket.ui.photo.PhotoActivity; // Màn hình sau khi đăng nhập thành công
+import com.example.locket.viewmodel.UserViewModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -30,7 +34,8 @@ import com.google.firebase.auth.FirebaseUser;
 public class SignInPassword extends AppCompatActivity {
 
     private static final String TAG = "SignInPassword";
-
+    private UserViewModel userViewModel;
+    private UserRepository userRepository;
     private EditText passwordEditText;
     private ImageView passwordToggleImage;
     private Button continueButton;
@@ -213,13 +218,32 @@ public class SignInPassword extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            Log.d(TAG, "signInWithEmail:success - UID: " + user.getUid());
+                            String uid = user.getUid();
+                            Log.d(TAG, "signInWithEmail:success - UID: " + uid);
                             Toast.makeText(SignInPassword.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show(); // *** Text cứng ***
 
-                            Intent intent = new Intent(SignInPassword.this, PhotoActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
+                            // khởi tạo user cho toàn bộ src
+                            userViewModel = ((MyApplication) getApplication()).getUserViewModel();
+                            userViewModel.loadUser(uid);
+
+                            userViewModel.getCurrentUser().observe(this, currentUser -> {
+                                if (currentUser  != null) {
+                                    Log.d("MainActivity", "User hiện tại: " + currentUser .getUsername());
+                                } else {
+                                    Log.e("MainActivity", "Chưa có user trên Firestore, tạo mới");
+
+                                    User newUser = new User(
+                                            uid,
+                                            user.getEmail(),
+                                            "", "", "", "", false
+                                    );
+                                    userRepository.saveUser(newUser);
+                                }
+                                Intent intent = new Intent(SignInPassword.this, PhotoActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
+                            });
 
                         } else {
                             Log.w(TAG, "signInWithEmail:success, but currentUser is null");
