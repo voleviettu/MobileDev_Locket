@@ -19,14 +19,29 @@ public class CloudinaryUploader {
     public static String uploadImage(Context context, Uri fileUri) {
         try {
             File file = getFileFromUri(context, fileUri);
+
+            String mimeType = context.getContentResolver().getType(fileUri);
+            String resourceType = "auto";
+            if (mimeType != null) {
+                if (mimeType.startsWith("image/")) {
+                    resourceType = "image";
+                } else if (mimeType.startsWith("audio/") || mimeType.startsWith("video/")) {
+                    resourceType = "video";
+                }
+            }
+
             Cloudinary cloudinary = CloudinaryHelper.getInstance();
-            Map uploadResult = cloudinary.uploader().upload(file, ObjectUtils.emptyMap());
-            return (String) uploadResult.get("url"); // Trả về URL ảnh đã upload
+            Map options = ObjectUtils.asMap("resource_type", resourceType);
+            Map uploadResult = cloudinary.uploader().upload(file, options);
+
+            return (String) uploadResult.get("url");
+
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("Upload", "Lỗi upload: " + e.getMessage(), e);
             return null;
         }
     }
+
 
     private static File getFileFromUri(Context context, Uri uri) {
         try {

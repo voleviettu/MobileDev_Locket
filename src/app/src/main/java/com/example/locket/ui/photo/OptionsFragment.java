@@ -5,9 +5,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -25,6 +28,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.locket.R;
+import com.example.locket.data.CloudinaryUploader;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -36,6 +40,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -45,6 +52,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.arthenica.ffmpegkit.FFmpegKit;
+
 
 public class OptionsFragment extends Fragment {
 
@@ -56,6 +65,8 @@ public class OptionsFragment extends Fragment {
 
     private FusedLocationProviderClient fusedLocationClient;
     private ArrayList<String[]> nearbyPlaces = new ArrayList<>();
+    private static final int REQUEST_CODE_PICK_MUSIC = 456;
+    private Uri selectedMusicUri;
 
     EditText messageInput;
     Button optionSongButton;
@@ -120,14 +131,18 @@ public class OptionsFragment extends Fragment {
                 }
                 @Override public void afterTextChanged(Editable s) {}
             });
+
         } else if (option.contains("nhạc")) {
             optionSongButton.setVisibility(View.VISIBLE);
             optionSongButton.setText(option);
 
             optionSongButton.setOnClickListener(v -> {
-                Toast.makeText(getContext(), "Đã chọn bài hát mẫu 🎵", Toast.LENGTH_SHORT).show();
-                if (listener != null) listener.onMusicSelected("sample_song.mp3");
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("audio/*");
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(Intent.createChooser(intent, "Chọn bài nhạc"), REQUEST_CODE_PICK_MUSIC);
             });
+
         } else if (option.contains("vị trí")) {
             optionLocationButton.setVisibility(View.VISIBLE);
             optionLocationButton.setText(option);
@@ -279,6 +294,65 @@ public class OptionsFragment extends Fragment {
         }
     }
 
+    private static String getPathFromUri(Context context, Uri uri) {
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+            String fileName = getFileNameFromUri(context, uri);
+            File tempFile = new File(context.getCacheDir(), fileName);
+            FileOutputStream outputStream = new FileOutputStream(tempFile);
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, read);
+            }
+            outputStream.flush();
+            return tempFile.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String getFileNameFromUri(Context context, Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex >= 0) {
+                        result = cursor.getString(nameIndex);
+                    }
+                }
+            } finally {
+                if (cursor != null) cursor.close();
+            }
+        }
+        if (result == null) {
+            result = uri.getLastPathSegment();
+        }
+        return result;
+    }
+
+    private String trimAudioTo20Seconds(Context context, Uri audioUri) {
+        String inputPath = getPathFromUri(context, audioUri);
+        String outputPath = context.getCacheDir().getAbsolutePath() + "/clip_20s_" + System.currentTimeMillis() + ".mp3";
+
+        String[] command = {
+                "-y", "-i", "\"" + inputPath + "\"",
+                "-t", "20",
+                "-c", "copy",
+                "\"" + outputPath + "\""
+        };
+
+        String cmd = String.join(" ", command);
+        FFmpegKit.execute(cmd);
+
+        File outputFile = new File(outputPath);
+        return outputFile.exists() ? outputPath : null;
+    }
+
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -286,6 +360,32 @@ public class OptionsFragment extends Fragment {
             String selectedName = data.getStringExtra("selected_name");
             optionLocationButton.setText(selectedName);
             if (listener != null) listener.onLocationSelected(selectedName);
+        }
+        if (requestCode == REQUEST_CODE_PICK_MUSIC && resultCode == Activity.RESULT_OK && data != null) {
+            selectedMusicUri = data.getData();
+
+            new Thread(() -> {
+                String trimmedPath = trimAudioTo20Seconds(requireContext(), selectedMusicUri);
+
+                if (trimmedPath != null) {
+                    Uri trimmedUri = Uri.fromFile(new File(trimmedPath));
+                    String uploadedUrl = CloudinaryUploader.uploadImage(requireContext(), trimmedUri);
+
+                    requireActivity().runOnUiThread(() -> {
+                        if (uploadedUrl != null) {
+                            Toast.makeText(getContext(), "Đã tải nhạc lên thành công 🎵", Toast.LENGTH_SHORT).show();
+                            if (listener != null) listener.onMusicSelected(uploadedUrl);
+                            optionSongButton.setText("🎵 Nhạc đã chọn");
+                        } else {
+                            Toast.makeText(getContext(), "Tải nhạc lên thất bại", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(getContext(), "Không thể cắt file nhạc", Toast.LENGTH_SHORT).show()
+                    );
+                }
+            }).start();
         }
     }
 

@@ -1,10 +1,15 @@
 package com.example.locket.ui.photo;
 
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
@@ -20,12 +25,21 @@ import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import android.media.MediaPlayer;
 
 public class DetailPhotoFriendActivity extends AppCompatActivity {
     private ImageView btnChat, photo, userAvatar, btnShowAll;
-    private TextView userName, postTime, caption;
+    private TextView userName, postTime, infoText;
+    private Button songButton;
+    private MediaPlayer mediaPlayer;
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private boolean isPlaying = false;
+
+    private CircularProgressView musicProgress;
+    private ImageView playPauseButton;
+    private RelativeLayout musicContainer;
+
     private SharedPhotoViewModel sharedPhotoViewModel;
     private UserViewModel userViewModel;
     private List<User> allUsers;
@@ -41,7 +55,14 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         userName = findViewById(R.id.user_name);
         btnShowAll = findViewById(R.id.btn_showall);
         postTime = findViewById(R.id.post_time);
-        caption = findViewById(R.id.caption);
+        infoText = findViewById(R.id.photo_caption_or_location);
+        songButton = findViewById(R.id.photo_song_button);
+        infoText.setVisibility(View.GONE);
+        songButton.setVisibility(View.GONE);
+        musicProgress = findViewById(R.id.music_progress);
+        playPauseButton = findViewById(R.id.play_pause_button);
+        musicContainer = findViewById(R.id.music_progress_container);
+
 
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
         sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
@@ -76,7 +97,23 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
                 String username = findUsernameByUid(latestPhoto.getUserId());
                 userName.setText(username);
 
-                caption.setText(latestPhoto.getCaption());
+                if (latestPhoto.getCaption() != null && !latestPhoto.getCaption().isEmpty()) {
+                    infoText.setText(latestPhoto.getCaption());
+                    infoText.setVisibility(View.VISIBLE);
+                } else if (latestPhoto.getLocation() != null && !latestPhoto.getLocation().isEmpty()) {
+                    infoText.setText("\uD83C\uDF0D " + latestPhoto.getLocation());
+                    infoText.setVisibility(View.VISIBLE);
+                } else if (latestPhoto.getMusicUrl() != null && !latestPhoto.getMusicUrl().isEmpty()) {
+                    songButton.setVisibility(View.VISIBLE);
+                    songButton.setOnClickListener(v -> {
+                        String musicUrl = latestPhoto.getMusicUrl();
+                        if (musicUrl != null && !musicUrl.isEmpty()) {
+                            playMusicWithProgress(musicUrl);
+                        } else {
+                            Toast.makeText(this, "Không có nhạc để phát", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
 
                 postTime.setText(formatTimeDifference(latestPhoto.getCreatedAt()));
 
@@ -117,4 +154,71 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
             return weeks + "w";
         }
     }
+
+    private void playMusicWithProgress(String url) {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+        }
+
+        try {
+            if (url.startsWith("http://")) {
+                url = url.replaceFirst("http://", "https://");
+            }
+
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setDataSource(url);
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaPlayer.setOnPreparedListener(mp -> {
+                mp.start();
+                isPlaying = true;
+                musicContainer.setVisibility(View.VISIBLE);
+                playPauseButton.setImageResource(R.drawable.ic_stop);
+                startProgressUpdate();
+            });
+            mediaPlayer.setOnCompletionListener(mp -> {
+                isPlaying = false;
+                playPauseButton.setImageResource(R.drawable.ic_play);
+                handler.removeCallbacks(updateProgressRunnable);
+                musicContainer.setVisibility(View.GONE);
+            });
+            mediaPlayer.prepareAsync();
+
+            playPauseButton.setOnClickListener(v -> {
+                if (isPlaying) {
+                    mediaPlayer.pause();
+                    isPlaying = false;
+                    playPauseButton.setImageResource(R.drawable.ic_play);
+                    handler.removeCallbacks(updateProgressRunnable);
+                } else {
+                    mediaPlayer.start();
+                    isPlaying = true;
+                    playPauseButton.setImageResource(R.drawable.ic_stop);
+                    startProgressUpdate();
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Không thể phát nhạc", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private final Runnable updateProgressRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mediaPlayer != null && isPlaying) {
+                int duration = mediaPlayer.getDuration();
+                int position = mediaPlayer.getCurrentPosition();
+                float progress = (float) position / duration;
+                musicProgress.setProgress(progress);
+                handler.postDelayed(this, 100);
+            }
+        }
+    };
+
+    private void startProgressUpdate() {
+        handler.post(updateProgressRunnable);
+    }
+
 }
+
