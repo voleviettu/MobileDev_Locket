@@ -31,7 +31,9 @@ public class Photo {
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
 
-    public String getImageUrl() { return imageUrl; }
+    public String getImageUrl() {
+        return imageUrl != null ? imageUrl.replace("http://", "https://") : null;
+    }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public String getCaption() { return caption; }

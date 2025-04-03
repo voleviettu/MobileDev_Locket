@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide; // <<< Import thư viện Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.locket.R;
 import com.example.locket.model.Photo; // Đảm bảo import đúng lớp Photo của bạn
@@ -39,7 +40,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         Photo photo = photoList.get(position);
 
-        String imageUrl = photo.getImageUrl().replace("http://", "https://");
+        String imageUrl = photo.getImageUrl();
         Log.d("FullPhotoActivity", "Load ảnh: " + imageUrl);
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Glide.with(context)
@@ -47,7 +48,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     .override(300, 300)
                     .placeholder(R.drawable.ic_logo)
                     .error(R.drawable.ic_logo)
-                    .transform(new RoundedCorners(30))
+                    .transform(new CenterCrop(), new RoundedCorners(30))
                     .into(holder.imageView);
         } else {
             Glide.with(context)

@@ -16,6 +16,8 @@ public class UserViewModel extends AndroidViewModel {
     private UserRepository userRepository;
     private static MutableLiveData<User> currentUser = new MutableLiveData<>();
 
+    private MutableLiveData<List<User>> allUsers = new MutableLiveData<>();
+
     public UserViewModel(@NonNull Application application) {
         super(application);
         userRepository = new UserRepository();
@@ -37,6 +39,20 @@ public class UserViewModel extends AndroidViewModel {
                 }
             });
         }
+    }
+    public LiveData<List<User>> getAllUsers() {
+        userRepository.getAllUsers(new UserRepository.FirestoreCallback<List<User>>() {
+            @Override
+            public void onSuccess(List<User> users) {
+                allUsers.setValue(users);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                allUsers.setValue(null);
+            }
+        });
+        return allUsers;
     }
 }
 

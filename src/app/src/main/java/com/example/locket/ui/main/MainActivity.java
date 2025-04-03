@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // tạm logout (để test 2 cái hàm signup login ở dưới thôi, chứ k có dùng sau này)
-        //FirebaseAuth.getInstance().signOut();
+//        FirebaseAuth.getInstance().signOut();
 
         // lấy user hiện tại, k có (chưa login) thì vào trang chào mừng
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -42,7 +42,8 @@ public class MainActivity extends AppCompatActivity {
             //signup("baalo@gmail.com", "12345678", "ahee", "atrann", "ahu ahy");
             //Log.d("MainActivity", "tạm signup thử trong main");
 
-            //login("khahhy@gmail.com", "12345678");
+//            login("khahhy@gmail.com", "12345678");
+            login("minhtri257tk@gmail.com", "123456789");
             //Log.d("MainActivity", "tạm login thử trong main");
 
             //signup("thuythanhluu161@gmail.com", "12345678", "thuy", "luu", "ltthuy161");

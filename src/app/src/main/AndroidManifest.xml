@@ -204,5 +204,4 @@
     <activity android:name=".ui.profile.ProfileActivity"/>
     <activity android:name=".ui.settings.SettingsActivity" />
 </application>
-
     </manifest>

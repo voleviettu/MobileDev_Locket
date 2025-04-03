@@ -45,7 +45,9 @@ public class User {
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
-    public String getAvatar() { return avatar; }
+    public String getAvatar() {
+        return avatar != null ? avatar.replace("http://", "https://") : null;
+    }
     public void setAvatar(String avatar) { this.avatar = avatar; }
 
     public boolean isPremium() { return isPremium; }
