@@ -83,19 +83,56 @@
                 android:scaleType="centerCrop"
                 />
 
-            <EditText
-                android:id="@+id/caption"
+            <TextView
+                android:id="@+id/photo_caption_or_location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center_horizontal"
                 android:background="@drawable/button_oval"
                 android:paddingHorizontal="15dp"
                 android:paddingVertical="10dp"
-                android:text="Caption"
                 android:textColor="@color/white"
                 android:textSize="18sp"
-                android:alpha="0.8"
-                android:layout_marginBottom="20dp"/>
+                android:alpha="0.85"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/photo_song_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:text="🎵 Nhạc đính kèm"
+                android:textColor="@color/white"
+                android:background="@drawable/button_oval"
+                android:paddingHorizontal="15dp"
+                android:paddingVertical="8dp"
+                android:visibility="gone"/>
+
+            <RelativeLayout
+                android:id="@+id/music_progress_container"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone"
+                android:background="@drawable/music_popup_background"
+                android:elevation="6dp"
+                android:clipToOutline="true">
+
+                <com.example.locket.ui.photo.CircularProgressView
+                    android:id="@+id/music_progress"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <ImageView
+                    android:id="@+id/play_pause_button"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_centerInParent="true"
+                    android:src="@drawable/ic_stop" />
+            </RelativeLayout>
 
         </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

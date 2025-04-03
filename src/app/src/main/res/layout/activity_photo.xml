@@ -54,7 +54,7 @@
                 android:id="@+id/num_friends"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="4 Bạn bè"
+                android:text="Bạn bè"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"/>
