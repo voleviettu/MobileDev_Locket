@@ -21,8 +21,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // !!! XÓA DÒNG NÀY KHI CÓ NÚT LOGOUT THẬT !!!
-        // FirebaseAuth.getInstance().signOut();
-        // Log.d(TAG, "!!! ĐÃ GỌI signOut() TẠM THỜI TRONG MAINACTIVITY !!!");
+         FirebaseAuth.getInstance().signOut();
+         Log.d(TAG, "!!! ĐÃ GỌI signOut() TẠM THỜI TRONG MAINACTIVITY !!!");
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
