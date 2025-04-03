@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -23,13 +24,15 @@ import com.example.locket.model.User;
 import com.example.locket.utils.NavigationUtils;
 import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import android.media.MediaPlayer;
 
 public class DetailPhotoFriendActivity extends AppCompatActivity {
-    private ImageView btnChat, photo, userAvatar, btnShowAll;
+    private ImageView btnChat, photo, userAvatar, btnShowAll, btnOption;
     private TextView userName, postTime, infoText;
     private Button songButton;
     private MediaPlayer mediaPlayer;
@@ -55,6 +58,7 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         userName = findViewById(R.id.user_name);
         btnShowAll = findViewById(R.id.btn_showall);
         postTime = findViewById(R.id.post_time);
+        btnOption = findViewById(R.id.btn_option);
         infoText = findViewById(R.id.photo_caption_or_location);
         songButton = findViewById(R.id.photo_song_button);
         infoText.setVisibility(View.GONE);
@@ -87,6 +91,30 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         });
 
         NavigationUtils.setChatButtonClickListener(btnChat, this);
+
+        btnOption.setOnClickListener(v -> {
+            View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_options, null);
+            BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+            bottomSheetDialog.setContentView(view);
+
+            // Cho phép chạm ra ngoài để đóng (mặc định đã là true)
+            bottomSheetDialog.setCanceledOnTouchOutside(true); // <- dòng này có thể thêm cho chắc
+
+            Button btnSave = view.findViewById(R.id.btn_save);
+            Button btnDelete = view.findViewById(R.id.btn_delete);
+
+            btnSave.setOnClickListener(view1 -> {
+                // TODO: Xử lý khi nhấn "Lưu"
+                bottomSheetDialog.dismiss();
+            });
+
+            btnDelete.setOnClickListener(view2 -> {
+                // TODO: Xử lý khi nhấn "Xóa"
+                bottomSheetDialog.dismiss();
+            });
+
+            bottomSheetDialog.show();
+        });
     }
 
     private void loadLatestPhoto(String userId) {
