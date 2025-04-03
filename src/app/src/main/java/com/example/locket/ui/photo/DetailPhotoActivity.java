@@ -10,6 +10,8 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.locket.MyApplication;
@@ -18,6 +20,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,7 +42,8 @@ import android.os.Handler;
 import android.os.Looper;
 import com.example.locket.model.User;
 
-public class DetailPhotoActivity extends AppCompatActivity {
+public class DetailPhotoActivity extends AppCompatActivity implements
+        OptionsFragment.OnOptionSelectedListener {
     private UserViewModel userViewModel;
     private FriendViewModel friendViewModel;
     private SharedPhotoViewModel sharedPhotoViewModel;
@@ -51,6 +55,9 @@ public class DetailPhotoActivity extends AppCompatActivity {
     private String userId;
     private ImageView photoView;
     private ViewPager2 viewPager;
+    private String selectedMessage = null;
+    private String selectedSong = null;
+    private String selectedLocation = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,13 +166,13 @@ public class DetailPhotoActivity extends AppCompatActivity {
             //} else {
             //    Toast.makeText(this, "Không thể lấy nội dung tin nhắn!", Toast.LENGTH_SHORT).show();
             //}
-            uploadPhoto("message", selectedFriendIds);
+            uploadPhoto(selectedMessage, selectedSong, selectedLocation, selectedFriendIds);
 
         });
 
     }
 
-    private void uploadPhoto(String caption, List<String> receiverIds) {
+    private void uploadPhoto(String caption, String song, String location, List<String> receiverIds) {
         if (photoPath == null || userId == null) {
             Toast.makeText(this, "Không có ảnh hoặc user chưa xác định!", Toast.LENGTH_SHORT).show();
             return;
@@ -181,8 +188,8 @@ public class DetailPhotoActivity extends AppCompatActivity {
                 fileUri,
                 userId,
                 caption,
-                null,
-                null,
+                song,
+                location,
                 photoId -> {
                     sharedPhotoViewModel.sharePhoto(photoId, userId, friendsList, receiverIds);
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
@@ -191,6 +198,36 @@ public class DetailPhotoActivity extends AppCompatActivity {
                     }, 1000);
                 }
         );
+    }
+    @Override
+    public void onMessageEntered(String message) {
+        selectedMessage = message;
+        selectedSong = null;
+        selectedLocation = null;
+    }
+
+    @Override
+    public void onMusicSelected(String song) {
+        selectedSong = song;
+        selectedMessage = null;
+        selectedLocation = null;
+    }
+
+    @Override
+    public void onLocationSelected(String location) {
+        selectedLocation = location;
+        selectedMessage = null;
+        selectedSong = null;
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+            if (fragment != null) {
+                fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
+        }
     }
 
     private Bitmap rotateImageIfRequired(Bitmap bitmap, String photoPath) {

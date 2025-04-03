@@ -61,4 +61,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     implementation("androidx.navigation:navigation-ui:2.7.7")
     implementation ("androidx.recyclerview:recyclerview:1.2.1")
+
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
 }

@@ -17,7 +17,18 @@
         android:layout_gravity="center"/>
 
     <Button
-        android:id="@+id/option_button"
+        android:id="@+id/option_button_song"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_oval"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:paddingHorizontal="30dp"
+        android:paddingVertical="10dp"
+        android:layout_gravity="center"/>
+
+    <Button
+        android:id="@+id/option_button_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/button_oval"
