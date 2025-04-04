@@ -258,10 +258,12 @@ public class DetailPhotoActivity extends AppCompatActivity implements
 
     private void savePhotoToGallery() {
         if (photoPath == null) return;
-
         File srcFile = new File(photoPath);
-        File destFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                "Locket_" + System.currentTimeMillis() + ".jpg");
+
+        String fileName = "Locket_" + System.currentTimeMillis() + ".jpg";
+
+        File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File destFile = new File(picturesDir, fileName);
 
         try {
             Bitmap bitmap = BitmapFactory.decodeFile(srcFile.getAbsolutePath());
@@ -272,10 +274,16 @@ public class DetailPhotoActivity extends AppCompatActivity implements
             out.flush();
             out.close();
 
+            Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            Uri contentUri = Uri.fromFile(destFile);
+            mediaScanIntent.setData(contentUri);
+            sendBroadcast(mediaScanIntent);
+
             Toast.makeText(this, "Ảnh đã được lưu!", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(this, "Lỗi khi lưu ảnh!", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
     }
+
 }

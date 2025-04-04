@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.locket.data.PhotoRepository;
+import com.example.locket.data.SharedPhotoRepository;
 import com.example.locket.model.Photo;
 
 import java.util.List;
@@ -62,4 +63,42 @@ public class PhotoViewModel extends ViewModel {
             }
         });
     }
+
+    public void deletePhoto(String currentUserId, Photo photo, Runnable onSuccess, Consumer<Exception> onFailure) {
+        if (photo.getUserId().equals(currentUserId)) {
+            photoRepository.deletePhotoById(photo.getPhotoId(), new PhotoRepository.FirestoreCallback<Void>() {
+                @Override
+                public void onSuccess(Void data) {
+                    new SharedPhotoRepository().deleteSharedPhotosByPhotoId(photo.getPhotoId(), new PhotoRepository.FirestoreCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void data) {
+                            loadUserPhotos(currentUserId);
+                            onSuccess.run();
+                        }
+                        @Override
+                        public void onFailure(Exception e) {
+                            onFailure.accept(e);
+                        }
+                    });
+                }
+                @Override
+                public void onFailure(Exception e) {
+                    onFailure.accept(e);
+                }
+            });
+        } else {
+            new SharedPhotoRepository().deleteSharedPhotoByReceiver(photo.getPhotoId(), currentUserId, new PhotoRepository.FirestoreCallback<Void>() {
+                @Override
+                public void onSuccess(Void data) {
+                    loadUserPhotos(currentUserId);
+                    onSuccess.run();
+                }
+                @Override
+                public void onFailure(Exception e) {
+                    onFailure.accept(e);
+                }
+            });
+        }
+    }
+
 }

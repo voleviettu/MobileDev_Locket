@@ -47,4 +47,71 @@ public class SharedPhotoRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    public void deleteSharedPhotosByPhotoId(String photoId, PhotoRepository.FirestoreCallback<Void> callback) {
+        db.collection("shared_photos")
+                .whereEqualTo("photoId", photoId)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (query.isEmpty()) {
+                        callback.onSuccess(null);
+                        return;
+                    }
+
+                    int total = query.size();
+                    int[] deleted = {0};
+                    boolean[] hasFailed = {false};
+
+                    for (var doc : query) {
+                        doc.getReference().delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    deleted[0]++;
+                                    if (deleted[0] == total && !hasFailed[0]) {
+                                        callback.onSuccess(null);
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    if (!hasFailed[0]) {
+                                        hasFailed[0] = true;
+                                        callback.onFailure(e);
+                                    }
+                                });
+                    }
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+
+    public void deleteSharedPhotoByReceiver(String photoId, String receiverId, PhotoRepository.FirestoreCallback<Void> callback) {
+        db.collection("shared_photos")
+                .whereEqualTo("photoId", photoId)
+                .whereEqualTo("receiverId", receiverId)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (query.isEmpty()) {
+                        callback.onSuccess(null);
+                        return;
+                    }
+
+                    int total = query.size();
+                    int[] deleted = {0};
+                    boolean[] hasFailed = {false};
+
+                    for (var doc : query) {
+                        doc.getReference().delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    deleted[0]++;
+                                    if (deleted[0] == total && !hasFailed[0]) {
+                                        callback.onSuccess(null);
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    if (!hasFailed[0]) {
+                                        hasFailed[0] = true;
+                                        callback.onFailure(e);
+                                    }
+                                });
+                    }
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+
 }

@@ -85,6 +85,13 @@ public class PhotoRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    public void deletePhotoById(String photoId, FirestoreCallback<Void> callback) {
+        db.collection("photos").document(photoId)
+                .delete()
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onFailure);
+    }
+
     public interface FirestoreCallback<T> {
         void onSuccess(T data);
         void onFailure(Exception e);
