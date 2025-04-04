@@ -11,6 +11,7 @@ import com.example.locket.data.UserRepository;
 import com.example.locket.model.User;
 import com.example.locket.ui.photo.PhotoActivity;
 
+import com.example.locket.viewmodel.FriendViewModel;
 import com.example.locket.viewmodel.UserViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -26,6 +27,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //new FriendViewModel().acceptFriendRequest("UZVHQWcfC2N1edVJyAUn3vmVQwQ2", "N1vOkqQ7BQSHHHclZBJ8j28ED6P2");
+        //new FriendViewModel().acceptFriendRequest("Rcpcy5LbCVWNYRfnIHTtb1wu8jI3", "N1vOkqQ7BQSHHHclZBJ8j28ED6P2");
+        //new FriendViewModel().acceptFriendRequest("6AFqeqFFK9QoWkHSW4iQ7XXKlgK2", "N1vOkqQ7BQSHHHclZBJ8j28ED6P2");
+
         // !!! XÓA DÒNG NÀY KHI CÓ NÚT LOGOUT THẬT !!!
          //FirebaseAuth.getInstance().signOut();
          Log.d(TAG, "!!! ĐÃ GỌI signOut() TẠM THỜI TRONG MAINACTIVITY !!!");
@@ -40,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+
 
         String uid = currentUser.getUid();
 

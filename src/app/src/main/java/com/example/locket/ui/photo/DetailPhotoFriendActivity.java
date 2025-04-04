@@ -1,8 +1,12 @@
 package com.example.locket.ui.photo;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -13,19 +17,27 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.model.Photo;
 import com.example.locket.model.User;
 import com.example.locket.utils.NavigationUtils;
+import com.example.locket.viewmodel.PhotoViewModel;
 import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +57,10 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
 
     private SharedPhotoViewModel sharedPhotoViewModel;
     private UserViewModel userViewModel;
+    private PhotoViewModel photoViewModel;
     private List<User> allUsers;
+    String userId;
+    Photo currentPhoto;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,6 +85,7 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
 
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
         sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
+        photoViewModel = new ViewModelProvider(this).get(PhotoViewModel.class);
 
         userViewModel.getAllUsers().observe(this, users -> {
             if (users != null) {
@@ -79,6 +95,7 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
 
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
+                userId = user.getUid();
                 loadLatestPhoto(user.getUid());
             } else {
                 Log.e("DetailPhotoFriend", "Không tìm thấy user!");
@@ -97,19 +114,50 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
             BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
             bottomSheetDialog.setContentView(view);
 
-            // Cho phép chạm ra ngoài để đóng (mặc định đã là true)
-            bottomSheetDialog.setCanceledOnTouchOutside(true); // <- dòng này có thể thêm cho chắc
+            bottomSheetDialog.setCanceledOnTouchOutside(true);
 
             Button btnSave = view.findViewById(R.id.btn_save);
             Button btnDelete = view.findViewById(R.id.btn_delete);
 
             btnSave.setOnClickListener(view1 -> {
-                // TODO: Xử lý khi nhấn "Lưu"
+                String imageUrl = currentPhoto.getImageUrl();
+                Glide.with(this)
+                        .asBitmap()
+                        .load(imageUrl)
+                        .into(new CustomTarget<Bitmap>() {
+                            @Override
+                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                saveBitmapToGallery(resource);
+                                Toast.makeText(DetailPhotoFriendActivity.this, "Ảnh đã được lưu!", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onLoadCleared(@Nullable Drawable placeholder) {
+                            }
+
+                            @Override
+                            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                                Toast.makeText(DetailPhotoFriendActivity.this, "Lỗi khi tải ảnh!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
                 bottomSheetDialog.dismiss();
             });
 
             btnDelete.setOnClickListener(view2 -> {
-                // TODO: Xử lý khi nhấn "Xóa"
+                if (currentPhoto == null || userId == null) {
+                    Toast.makeText(this, "Không thể xoá ảnh (thiếu thông tin)", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                photoViewModel.deletePhoto(userId, currentPhoto,
+                        () -> {
+                            Toast.makeText(this, "Đã xoá ảnh!", Toast.LENGTH_SHORT).show();
+                            finish();
+                        },
+                        e -> {
+                            Toast.makeText(this, "Lỗi khi xoá ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+
                 bottomSheetDialog.dismiss();
             });
 
@@ -121,7 +169,7 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         sharedPhotoViewModel.getSharedPhotos(userId).observe(this, photos -> {
             if (photos != null && !photos.isEmpty()) {
                 Photo latestPhoto = photos.get(0);
-
+                currentPhoto = latestPhoto;
                 String username = findUsernameByUid(latestPhoto.getUserId());
                 userName.setText(username);
 
@@ -246,6 +294,27 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
 
     private void startProgressUpdate() {
         handler.post(updateProgressRunnable);
+    }
+
+    private void saveBitmapToGallery(Bitmap bitmap) {
+        String filename = "Locket_" + System.currentTimeMillis() + ".jpg";
+        File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File file = new File(picturesDir, filename);
+
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+
+            Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            Uri contentUri = Uri.fromFile(file);
+            mediaScanIntent.setData(contentUri);
+            sendBroadcast(mediaScanIntent);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Lỗi khi lưu ảnh!", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }
