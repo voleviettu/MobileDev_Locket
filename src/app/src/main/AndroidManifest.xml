@@ -206,7 +206,8 @@
     <activity android:name=".ui.settings.ChangeIconActivity" />
     <activity android:name=".ui.photo.UploadImageActivity" />
     <activity android:name=".ui.profile.ProfileActivity"/>
-        <activity android:name=".ui.profile.EditNameActivity"/>
+    <activity android:name=".ui.friend.FriendList"/>
+    <activity android:name=".ui.profile.EditNameActivity"/>
     <activity android:name=".ui.settings.SettingsActivity" />
 </application>
     </manifest>
