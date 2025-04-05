@@ -7,16 +7,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ImageView;
+import android.widget.ImageView; // Thêm import này
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog; // Thêm import này
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide; // Thêm thư viện Glide hoặc Picasso vào build.gradle
+import com.bumptech.glide.Glide;
 import com.example.locket.R;
 import com.example.locket.data.FriendRepository;
 import com.example.locket.model.User;
@@ -38,6 +39,7 @@ public class FriendList extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private TextView textViewFriendCount;
     private MaterialButton buttonAddFriend;
+    private ImageView btnBack; // Thêm biến cho nút back
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,23 +57,28 @@ public class FriendList extends AppCompatActivity {
         textViewFriendCount = findViewById(R.id.textViewFriendCount);
         buttonAddFriend = findViewById(R.id.buttonAddFriend);
         recyclerViewFriends = findViewById(R.id.recyclerViewFriends);
+        btnBack = findViewById(R.id.btn_back); // Ánh xạ nút back
 
         // Cài đặt RecyclerView
         recyclerViewFriends.setLayoutManager(new LinearLayoutManager(this));
         friendAdapter = new FriendAdapter(friendList, friend -> {
-            // Xử lý khi nhấn nút xóa bạn
-            removeFriend(friend);
+            // Khi nút xóa trong adapter được nhấn, gọi hàm showConfirmationDialog
+            showRemoveFriendConfirmationDialog(friend);
         });
         recyclerViewFriends.setAdapter(friendAdapter);
 
         // Tải danh sách bạn bè
         loadFriendsList();
 
-        // Xử lý sự kiện nút "Add a new friend" (Ví dụ: chuyển sang Activity tìm kiếm)
+        // Xử lý sự kiện nút "Add a new friend"
         buttonAddFriend.setOnClickListener(v -> {
-            // Intent intent = new Intent(FriendList.this, SearchFriendActivity.class); // Thay SearchFriendActivity bằng Activity thực tế
-            // startActivity(intent);
-            Toast.makeText(this, "Chức năng Add Friend chưa được cài đặt", Toast.LENGTH_SHORT).show(); // Placeholder
+            Toast.makeText(this, "Chức năng Add Friend chưa được cài đặt", Toast.LENGTH_SHORT).show();
+        });
+
+        // Xử lý sự kiện nút Back
+        btnBack.setOnClickListener(v -> {
+            finish(); // Đóng Activity hiện tại
+            // Hoặc có thể dùng onBackPressed(); nếu bạn muốn hành vi giống nút back cứng
         });
     }
 
@@ -79,9 +86,8 @@ public class FriendList extends AppCompatActivity {
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         if (currentUser == null) {
             Log.e(TAG, "Người dùng chưa đăng nhập!");
-            // Có thể chuyển về màn hình đăng nhập hoặc hiển thị thông báo
             Toast.makeText(this, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show();
-            finish(); // Đóng activity này nếu user chưa đăng nhập
+            finish();
             return;
         }
 
@@ -94,41 +100,58 @@ public class FriendList extends AppCompatActivity {
                 Log.d(TAG, "Tải danh sách bạn bè thành công. Số lượng: " + data.size());
                 friendList.clear();
                 friendList.addAll(data);
-                friendAdapter.notifyDataSetChanged(); // Cập nhật RecyclerView
-                updateFriendCount(friendList.size()); // Cập nhật số lượng bạn bè trên TextView
+                friendAdapter.notifyDataSetChanged();
+                updateFriendCount(friendList.size());
             }
 
             @Override
             public void onFailure(Exception e) {
                 Log.e(TAG, "Lỗi khi tải danh sách bạn bè", e);
                 Toast.makeText(FriendList.this, "Lỗi tải danh sách bạn bè", Toast.LENGTH_SHORT).show();
-                updateFriendCount(0); // Cập nhật số lượng về 0 khi có lỗi
+                updateFriendCount(0);
             }
         });
     }
 
     private void updateFriendCount(int count) {
-        // Cập nhật TextView hiển thị số lượng bạn bè
-        // Bạn có thể thay đổi số "20" nếu giới hạn bạn bè là động
         textViewFriendCount.setText(count + " out of 20 friends");
     }
 
-    private void removeFriend(User friendToRemove) {
+    // Hàm hiển thị Dialog xác nhận xóa bạn
+    private void showRemoveFriendConfirmationDialog(User friendToRemove) {
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "Vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Removal") // Tiêu đề dialog
+                .setMessage("Are you sure you want to remove " + friendToRemove.getFullName() + " from your friends?") // Nội dung dialog
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Nếu người dùng nhấn Yes, thực hiện xóa bạn
+                    performRemoveFriend(currentUser, friendToRemove);
+                })
+                .setNegativeButton("No", (dialog, which) -> {
+                    // Nếu người dùng nhấn No, đóng dialog
+                    dialog.dismiss();
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert) // Icon cảnh báo (tùy chọn)
+                .show();
+    }
+
+
+    // Hàm thực hiện việc xóa bạn sau khi xác nhận
+    private void performRemoveFriend(FirebaseUser currentUser, User friendToRemove) {
         String currentUserId = currentUser.getUid();
         String friendIdToRemove = friendToRemove.getUid();
 
-        Log.d(TAG, "Yêu cầu xóa bạn: " + friendIdToRemove);
+        Log.d(TAG, "Xác nhận xóa bạn: " + friendIdToRemove);
 
         // Gọi hàm unfriend từ repository
         friendRepository.unfriend(currentUserId, friendIdToRemove);
 
-        // Cập nhật UI ngay lập tức (hoặc đợi callback nếu cần xác nhận từ server)
-        // Cách 1: Xóa khỏi list local và cập nhật adapter (nhanh hơn về mặt hiển thị)
+        // Cập nhật UI ngay lập tức
         int position = -1;
         for (int i = 0; i < friendList.size(); i++) {
             if (friendList.get(i).getUid().equals(friendIdToRemove)) {
@@ -139,20 +162,19 @@ public class FriendList extends AppCompatActivity {
         if (position != -1) {
             friendList.remove(position);
             friendAdapter.notifyItemRemoved(position);
-            friendAdapter.notifyItemRangeChanged(position, friendList.size()); // Cần thiết để cập nhật vị trí các item còn lại
+            // Quan trọng: Cập nhật lại các vị trí phía sau item đã xóa
+            friendAdapter.notifyItemRangeChanged(position, friendList.size());
             updateFriendCount(friendList.size()); // Cập nhật lại số lượng
             Log.d(TAG, "Đã xóa bạn khỏi danh sách cục bộ: " + friendIdToRemove);
-            Toast.makeText(this, "Đã xóa " + friendToRemove.getFullName(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Removed " + friendToRemove.getFullName(), Toast.LENGTH_SHORT).show();
         } else {
             Log.w(TAG, "Không tìm thấy bạn để xóa trong danh sách cục bộ: " + friendIdToRemove);
+            // Có thể xảy ra nếu có cập nhật khác diễn ra đồng thời
+            // Trong trường hợp này, nên tải lại danh sách để đảm bảo đồng bộ
+            loadFriendsList();
         }
-
-
-        // Cách 2: Tải lại toàn bộ danh sách (chắc chắn đồng bộ với server hơn sau khi xóa)
-        // loadFriendsList();
-        // Toast.makeText(this, "Đã gửi yêu cầu xóa " + friendToRemove.getFullName(), Toast.LENGTH_SHORT).show();
-
     }
+
 
     // --- Adapter Class ---
     private static class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendViewHolder> {
@@ -160,7 +182,6 @@ public class FriendList extends AppCompatActivity {
         private final List<User> friendList;
         private final OnRemoveFriendListener removeListener;
 
-        // Interface để xử lý sự kiện click nút xóa
         interface OnRemoveFriendListener {
             void onRemoveClicked(User friend);
         }
@@ -202,20 +223,17 @@ public class FriendList extends AppCompatActivity {
             }
 
             public void bind(final User friend, final OnRemoveFriendListener listener) {
-                textViewFriendName.setText(friend.getFullName()); // Sử dụng getFullName()
+                textViewFriendName.setText(friend.getFullName());
 
-                // Sử dụng Glide để tải ảnh đại diện (hoặc Picasso)
-                // Đảm bảo bạn đã thêm dependency của Glide vào build.gradle
                 Glide.with(itemView.getContext())
-                        .load(friend.getAvatar()) // getAvatar() đã xử lý http -> https
-                        .placeholder(R.drawable.default_avatar) // Ảnh hiển thị khi đang tải
-                        .error(R.drawable.default_avatar)       // Ảnh hiển thị khi lỗi
-                        // .circleCrop() // Bỏ comment nếu muốn ảnh luôn tròn (không phụ thuộc background)
+                        .load(friend.getAvatar())
+                        .placeholder(R.drawable.default_avatar) // Đảm bảo drawable này tồn tại
+                        .error(R.drawable.default_avatar)
                         .into(profileAvatar);
 
-                // Đặt sự kiện click cho nút xóa
                 buttonRemoveFriend.setOnClickListener(v -> {
                     if (listener != null) {
+                        // Gọi listener khi nút xóa được nhấn
                         listener.onRemoveClicked(friend);
                     }
                 });
