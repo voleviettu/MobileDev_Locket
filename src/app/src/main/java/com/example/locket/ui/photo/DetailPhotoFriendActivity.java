@@ -28,8 +28,10 @@ import com.bumptech.glide.request.transition.Transition;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.model.Photo;
+import com.example.locket.model.PhotoReaction;
 import com.example.locket.model.User;
 import com.example.locket.utils.NavigationUtils;
+import com.example.locket.viewmodel.PhotoReactionViewModel;
 import com.example.locket.viewmodel.PhotoViewModel;
 import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
@@ -44,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 import android.media.MediaPlayer;
 
 public class DetailPhotoFriendActivity extends AppCompatActivity {
-    private ImageView btnChat, photo, userAvatar, btnShowAll, btnOption;
+    private ImageView btnChat, photo, userAvatar, btnShowAll, btnOption, btnCapture, emojiHeart, emojiFire, emojiSmile;
     private TextView userName, postTime, infoText;
     private Button songButton;
     private MediaPlayer mediaPlayer;
@@ -58,6 +60,8 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
     private SharedPhotoViewModel sharedPhotoViewModel;
     private UserViewModel userViewModel;
     private PhotoViewModel photoViewModel;
+
+    private PhotoReactionViewModel photoReactionViewModel;
     private List<User> allUsers;
     String userId;
     Photo currentPhoto;
@@ -74,6 +78,7 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         btnShowAll = findViewById(R.id.btn_showall);
         postTime = findViewById(R.id.post_time);
         btnOption = findViewById(R.id.btn_option);
+        btnCapture = findViewById(R.id.btn_capture);
         infoText = findViewById(R.id.photo_caption_or_location);
         songButton = findViewById(R.id.photo_song_button);
         infoText.setVisibility(View.GONE);
@@ -82,10 +87,16 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         playPauseButton = findViewById(R.id.play_pause_button);
         musicContainer = findViewById(R.id.music_progress_container);
 
+        emojiHeart = findViewById(R.id.emoji_heart);
+        emojiFire = findViewById(R.id.emoji_fire);
+        emojiSmile = findViewById(R.id.emoji_smile);
+
 
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
         sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
         photoViewModel = new ViewModelProvider(this).get(PhotoViewModel.class);
+        photoReactionViewModel = new ViewModelProvider(this).get(PhotoReactionViewModel.class);
+
 
         userViewModel.getAllUsers().observe(this, users -> {
             if (users != null) {
@@ -106,8 +117,27 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
             Intent intent = new Intent(DetailPhotoFriendActivity.this, FullPhotoActivity.class);
             startActivity(intent);
         });
+        emojiHeart.setOnClickListener(v -> {
+            animateEmojiClick(v);
+            PhotoReaction reaction = new PhotoReaction(userId, currentPhoto.getPhotoId(), "love");
+            photoReactionViewModel.addReaction(reaction);
+        });
+
+        emojiFire.setOnClickListener(v -> {
+            animateEmojiClick(v);
+            PhotoReaction reaction = new PhotoReaction(userId, currentPhoto.getPhotoId(), "fire");
+            photoReactionViewModel.addReaction(reaction);
+        });
+
+        emojiSmile.setOnClickListener(v -> {
+            animateEmojiClick(v);
+            PhotoReaction reaction = new PhotoReaction(userId, currentPhoto.getPhotoId(), "smile");
+            photoReactionViewModel.addReaction(reaction);
+        });
 
         NavigationUtils.setChatButtonClickListener(btnChat, this);
+        NavigationUtils.setCaptureButtonClickListener(btnCapture, this);
+
 
         btnOption.setOnClickListener(v -> {
             View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_options, null);
@@ -316,6 +346,17 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
             Toast.makeText(this, "Lỗi khi lưu ảnh!", Toast.LENGTH_SHORT).show();
         }
     }
-
+    private void animateEmojiClick(View view) {
+        view.animate()
+                .scaleX(0.8f)
+                .scaleY(0.8f)
+                .setDuration(100)
+                .withEndAction(() -> view.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(100)
+                        .start())
+                .start();
+    }
 }
 

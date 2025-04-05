@@ -37,7 +37,7 @@ public class FullPhotoActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ImageAdapter imageAdapter;
     private List<Photo> photoList;
-    private ImageView btnChat;
+    private ImageView btnChat, btnCapture;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +76,7 @@ public class FullPhotoActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         btnChat = findViewById(R.id.btn_chat);
+        btnCapture = findViewById(R.id.btn_capture);
 
         photoList = new ArrayList<>();
         imageAdapter = new ImageAdapter(this, photoList);
@@ -114,7 +115,9 @@ public class FullPhotoActivity extends AppCompatActivity {
             }
         });
 
-        // Gán sự kiện cho nút chat
+        // Gán sự kiện cho nút chat, capture
         NavigationUtils.setChatButtonClickListener(btnChat, this);
+        NavigationUtils.setCaptureButtonClickListener(btnCapture, this);
+
     }
 }
