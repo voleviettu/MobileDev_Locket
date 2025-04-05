@@ -24,6 +24,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "HUGGINGFACE_API_KEY", "\"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\"")
+        }
+        debug {
+            buildConfigField("String", "HUGGINGFACE_API_KEY", "\"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\"")
         }
     }
     compileOptions {
@@ -33,6 +37,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -64,4 +69,6 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.arthenica:ffmpeg-kit-full:6.0")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

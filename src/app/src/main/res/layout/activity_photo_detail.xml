@@ -7,8 +7,6 @@
     android:background="@color/background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="70dp"
@@ -40,7 +38,6 @@
             app:layout_constraintBottom_toBottomOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -66,8 +63,7 @@
                 android:id="@+id/photo"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                 />
+                android:scaleType="centerCrop" />
 
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/view_pager"
@@ -106,9 +102,14 @@
             android:layout_marginHorizontal="25dp"
             android:scaleType="centerCrop"/>
 
+        <!-- Nút để tạo caption -->
         <ImageView
+            android:id="@+id/btn_generate_caption"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:src="@drawable/ic_caption"
+            android:contentDescription="Tạo Caption"
+            app:tint="@color/white"
             android:layout_marginStart="40dp"/>
     </LinearLayout>
 

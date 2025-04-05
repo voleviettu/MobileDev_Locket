@@ -405,5 +405,12 @@ public class OptionsFragment extends Fragment {
         }
     }
 
+    public void setMessageText(String text) {
+        if (messageInput != null) {
+            messageInput.setText(text);
+            if (listener != null) listener.onMessageEntered(text); // Gửi về activity luôn
+        }
+    }
+
 
 }
