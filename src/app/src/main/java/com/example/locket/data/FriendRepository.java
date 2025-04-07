@@ -235,45 +235,30 @@ public class FriendRepository {
         });
     }
 
-    public void getFriendPending(String userId, FirestoreCallback<List<User>> callback) {
+    public void getSentPendingRequestIds(String userId, FirestoreCallback<Set<String>> callback) {
         db.collection(COLLECTION_NAME)
-                .whereEqualTo("friendId", userId) // Tìm những bản ghi mà user hiện tại là người được mời
-                .whereEqualTo("status", "requested") // Chỉ lấy các yêu cầu đang chờ user hiện tại phản hồi
+                .whereEqualTo("userId", userId) // Tìm các bản ghi mà người dùng hiện tại là người gửi (userId)
+                .whereEqualTo("status", "pending")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        Log.d(TAG, "Không có yêu cầu kết bạn nào.");
-                        callback.onSuccess(new ArrayList<>());
-                        return;
-                    }
-
-                    List<String> requesterIds = new ArrayList<>();
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        Friend relationship = doc.toObject(Friend.class);
-                        if (relationship != null && relationship.getUserId() != null) {
-                            // userId trong bản ghi này là ID của người gửi yêu cầu
-                            requesterIds.add(relationship.getUserId());
+                    Set<String> pendingFriendIds = new HashSet<>();
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            Friend relationship = doc.toObject(Friend.class);
+                            // Đảm bảo lấy đúng friendId (người nhận lời mời)
+                            if (relationship != null && relationship.getFriendId() != null) {
+                                pendingFriendIds.add(relationship.getFriendId());
+                            }
                         }
                     }
-
-                    if (requesterIds.isEmpty()) {
-                        Log.d(TAG, "Danh sách requesterIds rỗng sau khi xử lý snapshot.");
-                        callback.onSuccess(new ArrayList<>());
-                        return;
-                    }
-
-                    Log.d(TAG, "Danh sách requesterIds cần lấy thông tin ("+ requesterIds.size() +"): " + requesterIds);
-                    // Lấy thông tin chi tiết của những người gửi yêu cầu
-                    fetchUsersInBatches(requesterIds, callback); // Tái sử dụng hàm fetchUsersInBatches
-
+                    callback.onSuccess(pendingFriendIds);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Lỗi khi tải danh sách yêu cầu kết bạn", e);
+                    Log.e(TAG, "Error getting sent pending request IDs", e);
                     callback.onFailure(e);
                 });
     }
 
-    // --- Phương thức lấy danh sách YÊU CẦU KẾT BẠN ĐẾN (Mới) ---
     public void getFriendRequests(String userId, FirestoreCallback<List<User>> callback) {
         Log.d(TAG, "Đang tải danh sách yêu cầu kết bạn cho user: " + userId);
         db.collection(COLLECTION_NAME)

@@ -37,13 +37,10 @@ import com.example.locket.ui.friend.FriendAdapter;
 import com.example.locket.ui.friend.SearchResultAdapter;
 import com.example.locket.ui.friend.FriendRequestAdapter;
 
-
 public class FriendList extends AppCompatActivity {
 
-    // --- Các biến thành viên giữ nguyên ---
     private static final String TAG = "FriendListActivity";
 
-    // ... (Views, Data, Firebase, etc. giữ nguyên) ...
     private ImageView btnBack;
     private TextView textViewFriendCount;
     private TextView textViewInvitePrompt;
@@ -65,6 +62,7 @@ public class FriendList extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private FirebaseUser currentUser;
     private boolean isSearching = false;
+    private Set<String> sentPendingRequestIds = new HashSet<>();
 
 
     @Override
@@ -82,12 +80,14 @@ public class FriendList extends AppCompatActivity {
             return;
         }
 
+        fetchSentPendingRequests(); // Lấy danh sách ID đã gửi lời mời
+
         // Khởi tạo các List
         friendList = new ArrayList<>();
         searchResultList = new ArrayList<>();
         friendRequestList = new ArrayList<>();
 
-        // Ánh xạ Views (giữ nguyên)
+        // Ánh xạ Views
         btnBack = findViewById(R.id.btn_back);
         textViewFriendCount = findViewById(R.id.textViewFriendCount);
         textViewInvitePrompt = findViewById(R.id.textViewInvitePrompt);
@@ -99,8 +99,6 @@ public class FriendList extends AppCompatActivity {
         recyclerViewSearchResults = findViewById(R.id.recyclerViewSearchResults);
         recyclerViewFriendRequests = findViewById(R.id.recyclerViewFriendRequests);
         friendRequestsHeader = findViewById(R.id.friendRequestsHeader);
-
-        // --- Cài đặt Adapters (Không cần thay đổi logic khởi tạo) ---
 
         // Adapter Bạn bè
         recyclerViewFriends.setLayoutManager(new LinearLayoutManager(this));
@@ -123,21 +121,19 @@ public class FriendList extends AppCompatActivity {
         );
         recyclerViewFriendRequests.setAdapter(friendRequestAdapter);
 
-        // Tải dữ liệu ban đầu (giữ nguyên)
+        // Tải dữ liệu ban đầu
         loadInitialData();
 
-        // Xử lý sự kiện nút Back (giữ nguyên)
+        // Xử lý sự kiện nút Back
         btnBack.setOnClickListener(v -> finish());
 
-        // Xử lý sự kiện cho thanh tìm kiếm (giữ nguyên)
+        // Xử lý sự kiện cho thanh tìm kiếm
         setupSearchFunctionality();
 
-        // Cập nhật giao diện ban đầu (giữ nguyên)
+        // Cập nhật giao diện ban đầu
         updateUIVisibility();
     }
 
-    // --- Các phương thức còn lại (onResume, loadData, updateUI, handlers, dialogs, ...) ---
-    // --- GIỮ NGUYÊN KHÔNG THAY ĐỔI ---
     @Override
     protected void onResume() {
         super.onResume();
@@ -265,6 +261,30 @@ public class FriendList extends AppCompatActivity {
         });
     }
 
+    private void fetchSentPendingRequests() {
+        if (currentUser == null) return;
+        friendRepository.getSentPendingRequestIds(currentUser.getUid(), new FriendRepository.FirestoreCallback<Set<String>>() {
+            @Override
+            public void onSuccess(Set<String> data) {
+                Log.d(TAG, "Successfully fetched sent pending request IDs: " + data.size());
+                sentPendingRequestIds = data;
+                // Nếu kết quả tìm kiếm đang hiển thị, cập nhật lại adapter
+                if (searchResultAdapter != null) {
+                    searchResultAdapter.setSentPendingIds(sentPendingRequestIds);
+                    // Cập nhật lại các item đang hiển thị nếu cần thiết
+                    // Hoặc đơn giản là gọi notifyDataSetChanged() nếu danh sách kết quả không đổi
+                    searchResultAdapter.notifyDataSetChanged(); // Đảm bảo các item được vẽ lại với trạng thái nút đúng
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Failed to fetch sent pending request IDs", e);
+                // Có thể hiển thị thông báo lỗi nếu cần
+            }
+        });
+    }
+
     private void performSearch(String query) {
         if (currentUser == null || query.isEmpty()) {
             searchResultList.clear();
@@ -284,7 +304,6 @@ public class FriendList extends AppCompatActivity {
         }
         excludeIds.add(currentUser.getUid()); // Không cho chính mình vào danh sách
 
-        // Gọi search từ repository, truyền excludeIds để loại trừ server-side (nếu có)
         friendRepository.searchUsers(query, currentUser.getUid(), new ArrayList<>(excludeIds), new FriendRepository.FirestoreCallback<List<User>>() {
             @Override
             public void onSuccess(List<User> data) {
@@ -298,6 +317,7 @@ public class FriendList extends AppCompatActivity {
                     }
                 }
 
+                searchResultAdapter.setSentPendingIds(sentPendingRequestIds);
                 searchResultAdapter.notifyDataSetChanged();
             }
 
@@ -365,21 +385,12 @@ public class FriendList extends AppCompatActivity {
             Toast.makeText(this, "You have a pending request from " + userToAdd.getFullName() + ".", Toast.LENGTH_SHORT).show();
             return;
         }
-        // Kiểm tra nếu đã gửi request...
 
         Log.d(TAG, "Sending friend request to: " + userToAdd.getFullName() + " (ID: " + userToAdd.getUid() + ")");
         friendRepository.sendFriendRequest(currentUser.getUid(), userToAdd.getUid());
 
-        // Cập nhật UI: Xóa khỏi search results
-        int position = searchResultList.indexOf(userToAdd); // Cách tìm index đơn giản hơn
-        if (position != -1) {
-            searchResultList.remove(position);
-            searchResultAdapter.notifyItemRemoved(position);
-        }
-
         Toast.makeText(this, "Friend request sent to " + userToAdd.getFullName(), Toast.LENGTH_SHORT).show();
-        // Cân nhắc cập nhật trạng thái nút thành "Pending" nếu muốn giữ item trong list
-        // searchResultAdapter.updateItemState(userToAdd.getUid(), "Pending");
+        searchResultAdapter.updateItemState(userToAdd.getUid(), "Pending");
     }
 
     private void acceptFriendRequestAction(User requester) {
