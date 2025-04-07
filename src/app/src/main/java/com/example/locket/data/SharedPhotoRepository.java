@@ -113,5 +113,18 @@ public class SharedPhotoRepository {
                 })
                 .addOnFailureListener(callback::onFailure);
     }
-
+    public void isPhotoSharedWithUser(String photoId, String userId, PhotoRepository.FirestoreCallback<Boolean> callback) {
+        db.collection(COLLECTION_NAME)
+                .whereEqualTo("photoId", photoId)
+                .whereArrayContains("receiverId", userId) // kiểm tra nếu userId là receiver của ảnh này
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        callback.onSuccess(true); // nếu ảnh được chia sẻ với user
+                    } else {
+                        callback.onSuccess(false); // nếu không có ảnh nào được chia sẻ với user
+                    }
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
 }

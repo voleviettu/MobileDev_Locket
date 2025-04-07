@@ -76,4 +76,62 @@ public class SharedPhotoViewModel extends ViewModel {
             repository.sharePhotoToUser(photoId, senderId, receiverId);
         }
     }
+
+    public LiveData<List<Photo>> getPhotosSharedWithMe(String friendId, String myId) {
+        MutableLiveData<List<Photo>> liveData = new MutableLiveData<>();
+
+        repository.getSharedPhotos(friendId, new PhotoRepository.FirestoreCallback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> photoIds) {
+                if (photoIds == null || photoIds.isEmpty()) {
+                    liveData.setValue(Collections.emptyList());
+                } else {
+                    List<String> sharedWithMe = new ArrayList<>();
+
+                    for (String photoId : photoIds) {
+                        // Kiểm tra nếu ảnh đã được chia sẻ với currentUser
+                        repository.isPhotoSharedWithUser(photoId, myId, new PhotoRepository.FirestoreCallback<Boolean>() {
+                            @Override
+                            public void onSuccess(Boolean isShared) {
+                                if (isShared) {
+                                    sharedWithMe.add(photoId);
+                                }
+
+                                if (sharedWithMe.size() == photoIds.size()) {
+                                    if (!sharedWithMe.isEmpty()) {
+                                        photoRepo.getPhotosByIds(sharedWithMe, new PhotoRepository.FirestoreCallback<List<Photo>>() {
+                                            @Override
+                                            public void onSuccess(List<Photo> photos) {
+                                                photos.sort((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()));
+                                                liveData.setValue(photos);
+                                            }
+
+                                            @Override
+                                            public void onFailure(Exception e) {
+                                                liveData.setValue(Collections.emptyList());
+                                            }
+                                        });
+                                    } else {
+                                        liveData.setValue(Collections.emptyList());
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+                                liveData.setValue(Collections.emptyList());
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                liveData.setValue(Collections.emptyList());
+            }
+        });
+
+        return liveData;
+    }
 }
