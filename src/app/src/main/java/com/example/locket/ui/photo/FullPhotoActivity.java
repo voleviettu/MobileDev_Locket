@@ -106,12 +106,6 @@ public class FullPhotoActivity extends AppCompatActivity {
             }
         });
 
-        sharedPhotoViewModel.getErrorMessage().observe(this, error -> {
-            if (error != null) {
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-            }
-        });
-
         recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
             @Override
             public boolean onInterceptTouchEvent(@NonNull RecyclerView rv, @NonNull MotionEvent e) {
@@ -144,22 +138,10 @@ public class FullPhotoActivity extends AppCompatActivity {
                 FriendDialog dialog = new FriendDialog(friendList, selectedFriend -> {
                     if (selectedFriend == null) {
                         title.setText("Tất cả bạn bè");
-                        sharedPhotoViewModel.getSharedPhotos(userId).observe(this, photos -> {
-                            imageAdapter.updatePhotos(photos != null ? photos : new ArrayList<>());
-                            if (photos == null || photos.isEmpty()) {
-                                Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        sharedPhotoViewModel.getSharedPhotos(userId); // Tải lại ảnh của tất cả bạn bè
                     } else {
                         title.setText(selectedFriend.getFullName());
-                        sharedPhotoViewModel
-                                .getPhotosSharedWithMe(selectedFriend.getUid(), userId) // 👈 gọi hàm mới
-                                .observe(this, photos -> {
-                                    imageAdapter.updatePhotos(photos != null ? photos : new ArrayList<>());
-                                    if (photos == null || photos.isEmpty()) {
-                                        Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriend.getUid(), userId); // Tải ảnh từ bạn bè cụ thể
                     }
                 });
                 dialog.show(getSupportFragmentManager(), "friendPopup");

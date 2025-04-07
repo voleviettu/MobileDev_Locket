@@ -116,14 +116,23 @@ public class SharedPhotoRepository {
     public void isPhotoSharedWithUser(String photoId, String userId, PhotoRepository.FirestoreCallback<Boolean> callback) {
         db.collection(COLLECTION_NAME)
                 .whereEqualTo("photoId", photoId)
-                .whereArrayContains("receiverId", userId) // kiểm tra nếu userId là receiver của ảnh này
+                .whereEqualTo("receiverId", userId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> callback.onSuccess(!querySnapshot.isEmpty()))
+                .addOnFailureListener(callback::onFailure);
+    }
+    public void getPhotosSharedByFriend(String senderId, String receiverId, PhotoRepository.FirestoreCallback<List<String>> callback) {
+        db.collection(COLLECTION_NAME)
+                .whereEqualTo("senderId", senderId)
+                .whereEqualTo("receiverId", receiverId)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        callback.onSuccess(true); // nếu ảnh được chia sẻ với user
-                    } else {
-                        callback.onSuccess(false); // nếu không có ảnh nào được chia sẻ với user
+                    List<String> photoIds = new ArrayList<>();
+                    for (var doc : querySnapshot) {
+                        SharedPhoto sharedPhoto = doc.toObject(SharedPhoto.class);
+                        photoIds.add(sharedPhoto.getPhotoId());
                     }
+                    callback.onSuccess(photoIds);
                 })
                 .addOnFailureListener(callback::onFailure);
     }
