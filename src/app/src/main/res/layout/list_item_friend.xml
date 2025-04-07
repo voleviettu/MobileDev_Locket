@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="10dp">
+
+    <ImageView
+        android:id="@+id/profile_avatar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/default_avatar"
+        android:scaleType="centerCrop"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/rounded_gold_button"/>
+
+
+    <TextView
+        android:id="@+id/textViewFriendName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@android:color/white"
+        android:textSize="17sp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        tools:text="Trâm Đặng 🍓🐼" />
+
+    <ImageButton
+        android:id="@+id/buttonRemoveFriend"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="9dp"
+        android:src="@drawable/ic_close"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="#AEAEB2"
+        android:contentDescription="Remove Friend"/>
+
+
+</LinearLayout>

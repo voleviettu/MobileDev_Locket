@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.locket.MyApplication;
 import com.example.locket.R;
+import com.example.locket.ui.friend.FriendList;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
@@ -123,6 +124,12 @@ public class PhotoActivity extends AppCompatActivity {
         LinearLayout btnFriend = findViewById(R.id.history_container);
         btnFriend.setOnClickListener(v -> {
             Intent intent = new Intent(PhotoActivity.this, DetailPhotoFriendActivity.class);
+            startActivity(intent);
+        });
+
+        LinearLayout btnFriendList = findViewById(R.id.btn_friends);
+        btnFriendList.setOnClickListener(v-> {
+            Intent intent = new Intent(PhotoActivity.this, FriendList.class);
             startActivity(intent);
         });
 
