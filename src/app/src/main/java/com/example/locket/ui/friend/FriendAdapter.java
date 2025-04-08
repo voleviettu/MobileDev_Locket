@@ -1,19 +1,18 @@
 package com.example.locket.ui.friend;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.bumptech.glide.Glide;
 import com.example.locket.R;
 import com.example.locket.model.User;
-
+import java.net.URL;
 import java.util.List;
 
 public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendViewHolder> {
@@ -63,15 +62,26 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendView
         }
 
         public void bind(final User friend, final FriendAdapter.OnRemoveFriendListener listener) {
-            if (friend == null) return; // Check null safety
+            if (friend == null) return;
+
             textViewFriendName.setText(friend.getFullName());
 
-            Glide.with(itemView.getContext())
-                    .load(friend.getAvatar())
-                    .placeholder(R.drawable.default_avatar)
-                    .error(R.drawable.default_avatar)
-                    .circleCrop()
-                    .into(profileAvatar);
+            // Avatar hiển thị từ URL hoặc ảnh mặc định
+            String avatarUrl = friend.getAvatar();
+            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                new Thread(() -> {
+                    try {
+                        URL url = new URL(avatarUrl);
+                        Bitmap bitmap = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                        ((View) profileAvatar).post(() -> profileAvatar.setImageBitmap(bitmap));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        ((View) profileAvatar).post(() -> profileAvatar.setImageResource(R.drawable.default_avatar));
+                    }
+                }).start();
+            } else {
+                profileAvatar.setImageResource(R.drawable.default_avatar);
+            }
 
             buttonRemoveFriend.setOnClickListener(v -> {
                 if (listener != null) {
@@ -79,5 +89,6 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.FriendView
                 }
             });
         }
+
     }
 }
