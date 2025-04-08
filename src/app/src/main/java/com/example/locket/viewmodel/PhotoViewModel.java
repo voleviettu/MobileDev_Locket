@@ -100,5 +100,8 @@ public class PhotoViewModel extends ViewModel {
             });
         }
     }
+    public void getPhotoById(String photoId, PhotoRepository.FirestoreCallback<Photo> callback) {
+        photoRepository.getPhotoById(photoId, callback);
+    }
 
 }

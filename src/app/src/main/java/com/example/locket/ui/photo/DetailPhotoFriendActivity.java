@@ -27,6 +27,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
+import com.example.locket.data.PhotoRepository;
 import com.example.locket.model.Photo;
 import com.example.locket.model.PhotoReaction;
 import com.example.locket.model.User;
@@ -108,7 +109,6 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
                 userId = user.getUid();
-                loadLatestPhoto(user.getUid());
                 ImageView btnProfile = findViewById(R.id.btn_profile);
                 if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
                     Glide.with(this)
@@ -117,6 +117,14 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
                             .into(btnProfile);
                 } else {
                     btnProfile.setImageResource(R.drawable.ic_profile);
+                }
+                // Lấy photoId từ Intent và tải chi tiết ảnh
+                String photoId = getIntent().getStringExtra("photoId");
+                if (photoId != null) {
+                    loadPhotoById(photoId);
+                } else {
+                    Toast.makeText(this, "Không tìm thấy ảnh", Toast.LENGTH_SHORT).show();
+                    finish();
                 }
             } else {
                 Log.e("DetailPhotoFriend", "Không tìm thấy user!");
@@ -385,6 +393,57 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
                         .setDuration(100)
                         .start())
                 .start();
+    }
+    private void loadPhotoById(String photoId) {
+        photoViewModel.getPhotoById(photoId, new PhotoRepository.FirestoreCallback<Photo>() {
+            @Override
+            public void onSuccess(Photo retrievedPhoto) { // Đổi tên biến photo thành retrievedPhoto để tránh trùng
+                currentPhoto = retrievedPhoto;
+                if (retrievedPhoto != null) {
+                    Glide.with(DetailPhotoFriendActivity.this)
+                            .load(retrievedPhoto.getImageUrl())
+                            .into(photo); // Sử dụng ImageView photo của activity
+                    userName.setText(findUsernameByUid(retrievedPhoto.getUserId()));
+                    postTime.setText(formatTimeDifference(retrievedPhoto.getCreatedAt()));
+
+                    if (retrievedPhoto.getCaption() != null && !retrievedPhoto.getCaption().isEmpty()) {
+                        infoText.setText(retrievedPhoto.getCaption());
+                        infoText.setVisibility(View.VISIBLE);
+                    } else if (retrievedPhoto.getLocation() != null && !retrievedPhoto.getLocation().isEmpty()) {
+                        infoText.setText("\uD83C\uDF0D " + retrievedPhoto.getLocation());
+                        infoText.setVisibility(View.VISIBLE);
+                    } else if (retrievedPhoto.getMusicUrl() != null && !retrievedPhoto.getMusicUrl().isEmpty()) {
+                        songButton.setVisibility(View.VISIBLE);
+                        songButton.setOnClickListener(v -> playMusicWithProgress(retrievedPhoto.getMusicUrl()));
+                    }
+
+                    if (allUsers != null) {
+                        for (User u : allUsers) {
+                            if (u.getUid().equals(retrievedPhoto.getUserId())) {
+                                if (u.getAvatar() != null && !u.getAvatar().isEmpty()) {
+                                    Glide.with(DetailPhotoFriendActivity.this)
+                                            .load(u.getAvatar())
+                                            .circleCrop()
+                                            .into(userAvatar);
+                                } else {
+                                    userAvatar.setImageResource(R.drawable.ic_profile);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    Toast.makeText(DetailPhotoFriendActivity.this, "Không tìm thấy ảnh", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(DetailPhotoFriendActivity.this, "Lỗi khi tải ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
     }
 }
 

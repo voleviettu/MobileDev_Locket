@@ -1,5 +1,6 @@
 package com.example.locket.ui.photo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -67,6 +68,13 @@ public class FullPhotoActivity extends AppCompatActivity {
         title = findViewById(R.id.tv_title);
         photoList = new ArrayList<>();
         imageAdapter = new ImageAdapter(this, photoList);
+
+        imageAdapter.setOnPhotoClickListener(photo -> {
+            Intent intent = new Intent(FullPhotoActivity.this, DetailPhotoFriendActivity.class);
+            intent.putExtra("photoId", photo.getPhotoId());
+            startActivity(intent);
+        });
+
         recyclerView.setAdapter(imageAdapter);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
