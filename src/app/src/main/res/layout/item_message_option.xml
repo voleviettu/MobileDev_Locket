@@ -5,10 +5,15 @@
 
     <EditText
         android:id="@+id/message_input"
-        android:layout_width="wrap_content"
+        android:layout_width="280dp"
         android:layout_height="wrap_content"
         android:background="@drawable/button_oval"
         android:hint="Thêm một tin nhắn"
+        android:maxLength="50"
+        android:inputType="textMultiLine"
+        android:maxLines="5"
+        android:minLines="1"
+        android:singleLine="false"
         android:textColorHint="@color/white"
         android:textSize="20sp"
         android:paddingHorizontal="30dp"
