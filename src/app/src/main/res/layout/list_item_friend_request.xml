@@ -8,17 +8,15 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:paddingVertical="10dp"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
     android:background="@color/black">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/profile_avatar_request"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/default_avatar"
         android:scaleType="centerCrop"
-        android:background="@drawable/rounded_gold_button"/> <!-- Có thể đổi background nếu muốn -->
+        app:shapeAppearanceOverlay="@style/CircleImageView"
+        android:src="@drawable/default_avatar"/>
 
     <TextView
         android:id="@+id/textViewUserNameRequest"
@@ -28,7 +26,7 @@
         android:textColor="@android:color/white"
         android:textSize="17sp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="16dp"
         tools:text="Helen" />
 
     <Button

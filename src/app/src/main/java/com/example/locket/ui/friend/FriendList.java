@@ -202,7 +202,7 @@ public class FriendList extends AppCompatActivity {
     }
 
     private void updateFriendCount(int count) {
-        textViewFriendCount.setText(count + " out of 20 friends");
+        textViewFriendCount.setText(count + " trong số 20 bạn bè");
         textViewInvitePrompt.setVisibility(count == 0 && friendRequestList.isEmpty() ? View.VISIBLE : View.GONE); // Logic cập nhật lại
     }
 

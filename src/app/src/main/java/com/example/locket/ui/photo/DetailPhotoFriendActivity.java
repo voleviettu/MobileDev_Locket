@@ -30,6 +30,7 @@ import com.example.locket.R;
 import com.example.locket.model.Photo;
 import com.example.locket.model.PhotoReaction;
 import com.example.locket.model.User;
+import com.example.locket.ui.profile.ProfileActivity;
 import com.example.locket.utils.NavigationUtils;
 import com.example.locket.viewmodel.PhotoReactionViewModel;
 import com.example.locket.viewmodel.PhotoViewModel;
@@ -108,6 +109,15 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
             if (user != null) {
                 userId = user.getUid();
                 loadLatestPhoto(user.getUid());
+                ImageView btnProfile = findViewById(R.id.btn_profile);
+                if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                    Glide.with(this)
+                            .load(user.getAvatar())
+                            .circleCrop()
+                            .into(btnProfile);
+                } else {
+                    btnProfile.setImageResource(R.drawable.ic_profile);
+                }
             } else {
                 Log.e("DetailPhotoFriend", "Không tìm thấy user!");
             }
@@ -138,6 +148,11 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         NavigationUtils.setChatButtonClickListener(btnChat, this);
         NavigationUtils.setCaptureButtonClickListener(btnCapture, this);
 
+        ImageView btnProfile = findViewById(R.id.btn_profile);
+        btnProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(DetailPhotoFriendActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
 
         btnOption.setOnClickListener(v -> {
             View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_options, null);
@@ -200,8 +215,21 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
             if (photos != null && !photos.isEmpty()) {
                 Photo latestPhoto = photos.get(0);
                 currentPhoto = latestPhoto;
-                String username = findUsernameByUid(latestPhoto.getUserId());
-                userName.setText(username);
+                for (User u : allUsers) {
+                    if (u.getUid().equals(latestPhoto.getUserId())) {
+                        userName.setText(u.getUsername());
+
+                        if (u.getAvatar() != null && !u.getAvatar().isEmpty()) {
+                            Glide.with(this)
+                                    .load(u.getAvatar())
+                                    .circleCrop()
+                                    .into(userAvatar);
+                        } else {
+                            userAvatar.setImageResource(R.drawable.ic_profile);
+                        }
+                        break;
+                    }
+                }
 
                 if (latestPhoto.getCaption() != null && !latestPhoto.getCaption().isEmpty()) {
                     infoText.setText(latestPhoto.getCaption());

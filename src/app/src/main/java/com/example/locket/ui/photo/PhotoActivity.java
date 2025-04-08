@@ -25,6 +25,7 @@ import androidx.camera.core.ImageCaptureException;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.ui.friend.FriendList;
@@ -89,6 +90,16 @@ public class PhotoActivity extends AppCompatActivity {
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
                 currentUser = user;
+                ImageView btnProfile = findViewById(R.id.btn_profile);
+                if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                    Glide.with(this)
+                            .load(user.getAvatar())
+                            .circleCrop()
+                            .into(btnProfile);
+                } else {
+                    btnProfile.setImageResource(R.drawable.ic_profile);
+                }
+
                 friendViewModel.loadFriends(currentUser.getUid());
                 friendViewModel.getFriends().observe(this, friends -> {
                     int friendCount = friends != null ? friends.size() : 0;

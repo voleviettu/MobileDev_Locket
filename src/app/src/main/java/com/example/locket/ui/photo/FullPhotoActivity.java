@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.model.Photo;
@@ -88,6 +89,15 @@ public class FullPhotoActivity extends AppCompatActivity {
                         Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
                     }
                 });
+                ImageView btnProfile = findViewById(R.id.btn_profile);
+                if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                    Glide.with(this)
+                            .load(user.getAvatar())
+                            .circleCrop()
+                            .into(btnProfile);
+                } else {
+                    btnProfile.setImageResource(R.drawable.ic_profile);
+                }
             } else {
                 Log.e("FullPhotoActivity", "Không tìm thấy user!");
             }
