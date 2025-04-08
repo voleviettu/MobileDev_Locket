@@ -15,6 +15,7 @@
         android:minLines="1"
         android:singleLine="false"
         android:textColorHint="@color/white"
+        android:textColor="@color/white"
         android:textSize="20sp"
         android:paddingHorizontal="30dp"
         android:paddingVertical="10dp"
