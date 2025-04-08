@@ -72,7 +72,6 @@ public class SignUpUsername extends AppCompatActivity {
             lastname = intent.getStringExtra("lastName");
         }
 
-        // --- Kiểm tra dữ liệu nhận được ---
         if (email == null || email.isEmpty() ||
                 password == null || password.isEmpty() ||
                 firstname == null || firstname.isEmpty() ||
@@ -80,9 +79,6 @@ public class SignUpUsername extends AppCompatActivity {
 
             Log.e(TAG, "Dữ liệu đăng ký (email, password, firstname, lastname) không đầy đủ.");
             Toast.makeText(this, "Lỗi: Thông tin đăng ký không đầy đủ. Vui lòng thử lại.", Toast.LENGTH_LONG).show();
-            // Quyết định quay lại màn hình nào phù hợp, ví dụ SignUpFullName hoặc màn hình đầu tiên
-            // finish(); // Đóng activity này
-            // Hoặc chuyển về màn hình trước đó một cách an toàn hơn
             Intent errorIntent = new Intent(this, SignUpFullName.class); // Quay về màn hình nhập tên
             errorIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Xóa stack phía trên
             startActivity(errorIntent);
@@ -93,7 +89,6 @@ public class SignUpUsername extends AppCompatActivity {
         Log.d(TAG, "Dữ liệu nhận được: Email=" + email + ", Firstname=" + firstname + ", Lastname=" + lastname);
 
 
-        // --- Sự kiện nút Tiếp tục ---
         continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -101,7 +96,6 @@ public class SignUpUsername extends AppCompatActivity {
             }
         });
 
-        // --- Sự kiện nút Back ---
         backButton.setOnClickListener(v -> finish());
 
         // --- TextWatcher cho username ---
@@ -112,34 +106,22 @@ public class SignUpUsername extends AppCompatActivity {
                 validateUsernameAndUpdateButton(s.toString());
             }
         });
-
-        // --- Trạng thái ban đầu của nút ---
         validateUsernameAndUpdateButton(usernameEditText.getText().toString()); // Kiểm tra trạng thái ban đầu
     }
 
-    /**
-     * Kiểm tra tính hợp lệ của username và cập nhật trạng thái nút Continue.
-     * @param username Username cần kiểm tra.
-     */
     private void validateUsernameAndUpdateButton(String username) {
         boolean isValid = isUsernameValid(username);
         continueButton.setEnabled(isValid);
         continueButton.setBackgroundTintList(isValid ? yellowColorStateList : grayColorStateList);
-        // Cập nhật màu chữ nếu cần
-        continueButton.setTextColor(ContextCompat.getColor(this, isValid ? R.color.black : R.color.black)); // Ví dụ màu chữ không đổi
+        continueButton.setTextColor(ContextCompat.getColor(this, isValid ? R.color.black : R.color.black));
     }
 
-    /**
-     * Kiểm tra username và gọi hàm đăng ký nếu hợp lệ.
-     */
     private void validateAndContinue() {
         String username = usernameEditText.getText().toString().trim();
 
         if (isUsernameValid(username)) {
-            // *** Gọi hàm signup với đầy đủ thông tin ***
             signup(email, password, firstname, lastname, username);
 
-            // Hiển thị trạng thái đang xử lý
             continueButton.setEnabled(false);
             continueButton.setText("Đang xử lý...");
 
@@ -148,44 +130,25 @@ public class SignUpUsername extends AppCompatActivity {
         }
     }
 
-    /**
-     * Hàm kiểm tra các quy tắc cho username.
-     * Ví dụ: Ít nhất 3 ký tự, không chứa khoảng trắng, chỉ chứa chữ cái và số.
-     * @param username Username cần kiểm tra.
-     * @return true nếu hợp lệ, false nếu không.
-     */
     private boolean isUsernameValid(String username) {
         String trimmedUsername = username.trim();
         // Quy tắc: >= 3 ký tự, không có khoảng trắng, chỉ chữ cái/số
         return trimmedUsername.length() >= 3 &&
                 !trimmedUsername.contains(" ") &&
                 trimmedUsername.matches("^[a-zA-Z0-9_]*$"); // Cho phép cả dấu gạch dưới
-        // Hoặc: trimmedUsername.matches("^[a-zA-Z0-9]*$"); // Chỉ chữ cái và số
     }
 
-    /**
-     * Thực hiện đăng ký tài khoản Firebase Auth và lưu thông tin vào Firestore.
-     * @param email Email đăng ký.
-     * @param password Mật khẩu đăng ký.
-     * @param firstname Tên người dùng.
-     * @param lastname Họ người dùng.
-     * @param username Tên định danh (username).
-     */
     private void signup(String email, String password, String firstname, String lastname, String username) {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    // Khôi phục trạng thái nút
-                    // Kích hoạt lại dựa trên username hiện tại trong EditText
                     validateUsernameAndUpdateButton(usernameEditText.getText().toString());
-                    continueButton.setText("Tiếp tục");
+                    continueButton.setText("Đăng ký");
 
                     if (task.isSuccessful()) {
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
                         if (firebaseUser != null) {
                             Log.d(TAG, "Đăng ký tài khoản Firebase Auth thành công: " + firebaseUser.getUid());
 
-                            // *** Tạo đối tượng User với thông tin đầy đủ và đúng constructor ***
-                            // Constructor: User(uid, email, firstname, lastname, username, avatar, isPremium)
                             User newUser = new User(
                                     firebaseUser.getUid(),
                                     firebaseUser.getEmail(), // Lấy email từ firebaseUser cho chắc chắn
@@ -196,7 +159,6 @@ public class SignUpUsername extends AppCompatActivity {
                                     false // isPremium ban đầu là false
                             );
 
-                            // Lưu user vào Firestore
                             userRepository.saveUser(newUser)
                                     .addOnSuccessListener(aVoid -> {
                                         Log.d(TAG, "Lưu user vào Firestore thành công");
@@ -212,8 +174,6 @@ public class SignUpUsername extends AppCompatActivity {
                                     .addOnFailureListener(e -> {
                                         Log.e(TAG, "Lỗi khi lưu user vào Firestore", e);
                                         Toast.makeText(SignUpUsername.this, "Đăng ký thành công nhưng lỗi lưu thông tin: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                        // Cân nhắc xử lý rollback (xóa tài khoản Auth đã tạo)
-                                        // firebaseUser.delete().addOnCompleteListener(...);
                                     });
                         } else {
                             Log.e(TAG, "firebaseUser null sau khi signup thành công");

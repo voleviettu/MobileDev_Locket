@@ -174,14 +174,12 @@ public class SignInPassword extends AppCompatActivity {
         continueButton.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, buttonColorRes)));
         // Cập nhật text nút về mặc định nếu đang không đăng nhập (đảm bảo text đúng sau khi nhập đủ ký tự)
         if (continueButton.getText().toString().equals("Đang đăng nhập...")) {
-            // Chỉ đổi lại text nếu nó đang là "Đang đăng nhập..." và mật khẩu lại hợp lệ/không hợp lệ
-            // Nếu không đăng nhập thì text nút nên là "Tiếp tục"
+
             if (!continueButton.isEnabled() || isValid) { // Cập nhật lại khi thay đổi trạng thái enable
-                continueButton.setText("Tiếp tục"); // *** Text cứng ***
+                continueButton.setText("Đăng nhập");
             }
         } else if (continueButton.isEnabled()){
-            // Đảm bảo text là "Tiếp tục" khi nút được enable và không trong trạng thái "Đang đăng nhập"
-            continueButton.setText("Tiếp tục"); // *** Text cứng ***
+            continueButton.setText("Đăng nhập");
         }
 
 
@@ -202,17 +200,11 @@ public class SignInPassword extends AppCompatActivity {
         passwordEditText.setSelection(selection);
     }
 
-    /**
-     * Thực hiện đăng nhập người dùng.
-     * @param email Email.
-     * @param password Mật khẩu.
-     */
     private void signIn(String email, String password) {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    // Luôn khôi phục trạng thái nút "Tiếp tục"
                     continueButton.setEnabled(true);
-                    continueButton.setText("Tiếp tục"); // *** Text cứng ***
+                    continueButton.setText("Đăng nhập");
                     validatePasswordAndUpdateButton(passwordEditText.getText().toString()); // Cập nhật lại trạng thái enable/disable
 
                     if (task.isSuccessful()) {
@@ -251,7 +243,6 @@ public class SignInPassword extends AppCompatActivity {
                         }
                     } else {
                         Log.w(TAG, "signInWithEmail:failure", task.getException());
-                        // *** Text cứng ***
                         String errorMessage = "Đăng nhập thất bại.";
                         if (task.getException() != null) {
                             errorMessage += " Lỗi: " + task.getException().getMessage();
