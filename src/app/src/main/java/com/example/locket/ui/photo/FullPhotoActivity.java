@@ -76,7 +76,6 @@ public class FullPhotoActivity extends AppCompatActivity {
             if (user != null) {
                 currentUser = user;
                 userId = user.getUid();
-
                 // Tải danh sách bạn bè
                 friendViewModel.loadFriends(userId);
 
@@ -103,6 +102,18 @@ public class FullPhotoActivity extends AppCompatActivity {
             } else {
                 friendList.clear();
                 Log.d("FullPhotoActivity", "Không có bạn bè nào được tải");
+            }
+            if (currentUser != null) {
+                User self = new User(
+                        currentUser.getUid(),
+                        currentUser.getEmail(),
+                        "",
+                        "Bạn",
+                        currentUser.getUsername(),
+                        currentUser.getAvatar(),
+                        currentUser.isPremium()
+                );
+                friendList.add(self);
             }
         });
 
@@ -138,10 +149,13 @@ public class FullPhotoActivity extends AppCompatActivity {
                 FriendDialog dialog = new FriendDialog(friendList, selectedFriend -> {
                     if (selectedFriend == null) {
                         title.setText("Tất cả bạn bè");
-                        sharedPhotoViewModel.getSharedPhotos(userId); // Tải lại ảnh của tất cả bạn bè
+                        sharedPhotoViewModel.getSharedPhotos(userId); // Tải tất cả ảnh gửi tới người dùng
+                    } else if (selectedFriend.getLastname().equals("Bạn")) {
+                        title.setText("Bạn");
+                        sharedPhotoViewModel.getMyPhotos(userId); // Tải ảnh người dùng đã đăng
                     } else {
                         title.setText(selectedFriend.getFullName());
-                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriend.getUid(), userId); // Tải ảnh từ bạn bè cụ thể
+                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriend.getUid(), userId); // Tải ảnh từ bạn bè gửi tới
                     }
                 });
                 dialog.show(getSupportFragmentManager(), "friendPopup");

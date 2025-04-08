@@ -5,7 +5,10 @@ import com.example.locket.model.SharedPhoto;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SharedPhotoRepository {
     private static final String TAG = "SharedPhotoRepository";
@@ -113,14 +116,6 @@ public class SharedPhotoRepository {
                 })
                 .addOnFailureListener(callback::onFailure);
     }
-    public void isPhotoSharedWithUser(String photoId, String userId, PhotoRepository.FirestoreCallback<Boolean> callback) {
-        db.collection(COLLECTION_NAME)
-                .whereEqualTo("photoId", photoId)
-                .whereEqualTo("receiverId", userId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> callback.onSuccess(!querySnapshot.isEmpty()))
-                .addOnFailureListener(callback::onFailure);
-    }
     public void getPhotosSharedByFriend(String senderId, String receiverId, PhotoRepository.FirestoreCallback<List<String>> callback) {
         db.collection(COLLECTION_NAME)
                 .whereEqualTo("senderId", senderId)
@@ -133,6 +128,48 @@ public class SharedPhotoRepository {
                         photoIds.add(sharedPhoto.getPhotoId());
                     }
                     callback.onSuccess(photoIds);
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+    public void getPhotosExchangedBetweenUsers(String userId1, String userId2, PhotoRepository.FirestoreCallback<List<String>> callback) {
+        db.collection(COLLECTION_NAME)
+                .whereIn("senderId", Arrays.asList(userId1, userId2))
+                .whereIn("receiverId", Arrays.asList(userId1, userId2))
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<String> photoIds = new ArrayList<>();
+                    for (var doc : querySnapshot) {
+                        SharedPhoto sharedPhoto = doc.toObject(SharedPhoto.class);
+                        if ((sharedPhoto.getSenderId().equals(userId1) && sharedPhoto.getReceiverId().equals(userId2)) ||
+                                (sharedPhoto.getSenderId().equals(userId2) && sharedPhoto.getReceiverId().equals(userId1))) {
+                            if (!photoIds.contains(sharedPhoto.getPhotoId())) {
+                                photoIds.add(sharedPhoto.getPhotoId());
+                            }
+                        }
+                    }
+                    callback.onSuccess(photoIds);
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+    public void getPhotosSharedWithMeGroupedBySender(String userId, PhotoRepository.FirestoreCallback<Map<String, List<String>>> callback) {
+        db.collection(COLLECTION_NAME)
+                .whereEqualTo("receiverId", userId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    Map<String, List<String>> photosBySender = new HashMap<>();
+
+                    for (var doc : querySnapshot) {
+                        SharedPhoto sharedPhoto = doc.toObject(SharedPhoto.class);
+                        String senderId = sharedPhoto.getSenderId();
+                        String photoId = sharedPhoto.getPhotoId();
+
+                        if (!photosBySender.containsKey(senderId)) {
+                            photosBySender.put(senderId, new ArrayList<>());
+                        }
+                        photosBySender.get(senderId).add(photoId);
+                    }
+
+                    callback.onSuccess(photosBySender);
                 })
                 .addOnFailureListener(callback::onFailure);
     }
