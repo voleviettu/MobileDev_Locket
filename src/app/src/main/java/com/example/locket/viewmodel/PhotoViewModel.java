@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.locket.data.PhotoRepository;
+import com.example.locket.data.SharedPhotoRepository;
 import com.example.locket.model.Photo;
 
 import java.util.List;
@@ -19,10 +20,10 @@ public class PhotoViewModel extends ViewModel {
     private final MutableLiveData<Boolean> isUploading = new MutableLiveData<>();
     private final MutableLiveData<String> uploadError = new MutableLiveData<>(); // Thêm LiveData cho lỗi
 
+
     public PhotoViewModel() {
         photoRepository = new PhotoRepository();
         isUploading.setValue(false);
-        uploadError.setValue(null); // Khởi tạo lỗi là null
     }
 
     public LiveData<List<Photo>> getUserPhotos() {
@@ -31,10 +32,6 @@ public class PhotoViewModel extends ViewModel {
 
     public LiveData<Boolean> getIsUploading() {
         return isUploading;
-    }
-
-    public LiveData<String> getUploadError() {
-        return uploadError; // Trả về LiveData để quan sát lỗi
     }
 
     public void loadUserPhotos(String userId) {
@@ -53,7 +50,6 @@ public class PhotoViewModel extends ViewModel {
 
     public void uploadPhoto(Context context, Uri fileUri, String userId, String caption, String musicUrl, String location, Consumer<String> onSuccessPhotoId) {
         isUploading.postValue(true);
-        uploadError.postValue(null); // Reset lỗi trước khi upload
 
         photoRepository.uploadAndSavePhoto(context, fileUri, userId, caption, musicUrl, location, new PhotoRepository.FirestoreCallback<String>() {
             @Override
@@ -66,8 +62,52 @@ public class PhotoViewModel extends ViewModel {
             @Override
             public void onFailure(Exception e) {
                 isUploading.postValue(false);
-                uploadError.postValue("Lỗi khi upload ảnh: " + e.getMessage()); // Gửi thông báo lỗi
             }
         });
     }
+
+    public LiveData<String> getUploadError() {
+        return uploadError; // Trả về LiveData để quan sát lỗi
+    }
+
+    public void deletePhoto(String currentUserId, Photo photo, Runnable onSuccess, Consumer<Exception> onFailure) {
+        if (photo.getUserId().equals(currentUserId)) {
+            photoRepository.deletePhotoById(photo.getPhotoId(), new PhotoRepository.FirestoreCallback<Void>() {
+                @Override
+                public void onSuccess(Void data) {
+                    new SharedPhotoRepository().deleteSharedPhotosByPhotoId(photo.getPhotoId(), new PhotoRepository.FirestoreCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void data) {
+                            loadUserPhotos(currentUserId);
+                            onSuccess.run();
+                        }
+                        @Override
+                        public void onFailure(Exception e) {
+                            onFailure.accept(e);
+                        }
+                    });
+                }
+                @Override
+                public void onFailure(Exception e) {
+                    onFailure.accept(e);
+                }
+            });
+        } else {
+            new SharedPhotoRepository().deleteSharedPhotoByReceiver(photo.getPhotoId(), currentUserId, new PhotoRepository.FirestoreCallback<Void>() {
+                @Override
+                public void onSuccess(Void data) {
+                    loadUserPhotos(currentUserId);
+                    onSuccess.run();
+                }
+                @Override
+                public void onFailure(Exception e) {
+                    onFailure.accept(e);
+                }
+            });
+        }
+    }
+    public void getPhotoById(String photoId, PhotoRepository.FirestoreCallback<Photo> callback) {
+        photoRepository.getPhotoById(photoId, callback);
+    }
+
 }
