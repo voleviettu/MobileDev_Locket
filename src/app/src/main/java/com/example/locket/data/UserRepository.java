@@ -29,7 +29,6 @@ public class UserRepository {
         DocumentReference userRef = db.collection(COLLECTION_NAME).document(user.getUid());
         Log.d(TAG, "Chuẩn bị lưu user vào Firestore với UID: " + user.getUid());
 
-        // *** Trả về Task<Void> từ phương thức set() ***
         return userRef.set(user);
     }
 
@@ -46,6 +45,21 @@ public class UserRepository {
                 "firstname", firstName,
                 "lastname", lastName,
                 "updatedAt", FieldValue.serverTimestamp() // Cập nhật cả thời gian chỉnh sửa
+        );
+    }
+
+    public Task<Void> updateAvatar(String uid, String avatarUrl) {
+        if (uid == null || uid.isEmpty()) {
+            Log.e(TAG, "Không thể cập nhật avatar: UID không hợp lệ.");
+            return com.google.android.gms.tasks.Tasks.forException(new IllegalArgumentException("UID không hợp lệ"));
+        }
+
+        DocumentReference userRef = db.collection(COLLECTION_NAME).document(uid);
+        Log.d(TAG, "Chuẩn bị cập nhật avatar cho UID: " + uid);
+
+        return userRef.update(
+                "avatar", avatarUrl,
+                "updatedAt", FieldValue.serverTimestamp()
         );
     }
 

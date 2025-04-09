@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="10dp"
+    android:background="@color/black">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/profile_avatar_request"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/CircleImageView"
+        android:src="@drawable/default_avatar"/>
+
+    <TextView
+        android:id="@+id/textViewUserNameRequest"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@android:color/white"
+        android:textSize="17sp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        tools:text="Helen" />
+
+    <Button
+        android:id="@+id/buttonAcceptRequest"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:minWidth="80dp"
+        android:text="Accept"
+        android:textSize="14sp"
+        android:textColor="@color/black"
+        android:backgroundTint="@color/searchResultAddButtonBackground"
+        app:cornerRadius="24dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_marginEnd="8dp"
+        android:textAllCaps="false"
+        android:gravity="center" />
+
+    <ImageButton
+        android:id="@+id/buttonDeclineRequest"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:padding="6dp"
+        android:src="@drawable/ic_close"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="#AEAEB2"
+        android:contentDescription="Decline Request"/>
+
+</LinearLayout>

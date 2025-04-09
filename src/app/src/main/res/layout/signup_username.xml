@@ -73,7 +73,7 @@
             android:backgroundTint="@color/gray_light"
             android:paddingTop="14dp"
             android:paddingBottom="14dp"
-            android:text="@string/continue_button"
+            android:text="@string/signup"
             android:textColor="@color/black"
             android:textSize="16sp"
             android:textStyle="bold" />

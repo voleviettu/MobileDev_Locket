@@ -85,6 +85,40 @@ public class PhotoRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    public void deletePhotoById(String photoId, FirestoreCallback<Void> callback) {
+        db.collection("photos").document(photoId)
+                .delete()
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onFailure);
+    }
+    public void getPhotoById(String photoId, FirestoreCallback<Photo> callback) {
+        if (photoId == null || photoId.isEmpty()) {
+            callback.onFailure(new IllegalArgumentException("photoId không được null hoặc rỗng"));
+            return;
+        }
+
+        db.collection(COLLECTION_NAME)
+                .document(photoId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Photo photo = documentSnapshot.toObject(Photo.class);
+                        if (photo != null) {
+                            Log.d(TAG, "Lấy ảnh thành công: " + photoId);
+                            callback.onSuccess(photo);
+                        } else {
+                            callback.onFailure(new Exception("Không thể chuyển đổi dữ liệu ảnh"));
+                        }
+                    } else {
+                        callback.onFailure(new Exception("Không tìm thấy ảnh với photoId: " + photoId));
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Lỗi khi lấy ảnh: " + e.getMessage());
+                    callback.onFailure(e);
+                });
+    }
+
     public interface FirestoreCallback<T> {
         void onSuccess(T data);
         void onFailure(Exception e);

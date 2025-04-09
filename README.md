@@ -31,6 +31,12 @@
 userViewModel = ((MyApplication) getApplication()).getUserViewModel();
 ```
 
+### Using AI to generate caption
+
+copy `HUGGINGFACE_API_KEY` ở dưới rồi paste vào phần value ở line 27 và 30 trong `build.gradle.kts (Module: app)`
+
+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
+
 ## Luồng hoạt động
 - View (Activity / Fragment) sẽ gọi các hàm trong ViewModel để xử lý logic hoặc lấy dữ liệu.
 

@@ -1,5 +1,7 @@
 package com.example.locket.viewmodel;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -12,6 +14,7 @@ import com.example.locket.model.User;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class SharedPhotoViewModel extends ViewModel {
     private final SharedPhotoRepository repository;
@@ -76,4 +79,55 @@ public class SharedPhotoViewModel extends ViewModel {
             repository.sharePhotoToUser(photoId, senderId, receiverId);
         }
     }
+
+    public LiveData<List<Photo>> getPhotosSharedWithMe(String friendId, String myId) {
+        repository.getPhotosSharedByFriend(friendId, myId, new PhotoRepository.FirestoreCallback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> photoIds) {
+                if (photoIds == null || photoIds.isEmpty()) {
+                    sharedPhotos.setValue(Collections.emptyList());
+                } else {
+                    photoRepo.getPhotosByIds(photoIds, new PhotoRepository.FirestoreCallback<List<Photo>>() {
+                        @Override
+                        public void onSuccess(List<Photo> photos) {
+                            photos.sort((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()));
+                            sharedPhotos.setValue(photos);
+                        }
+
+                        @Override
+                        public void onFailure(Exception e) {
+                            errorMessage.setValue("Không thể tải ảnh từ bạn bè: " + e.getMessage());
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                errorMessage.setValue("Lỗi khi tải ảnh từ bạn bè: " + e.getMessage());
+            }
+        });
+        return sharedPhotos;
+    }
+    public LiveData<List<Photo>> getMyPhotos(String userId) {
+        photoRepo.getPhotosByUser(userId, new PhotoRepository.FirestoreCallback<List<Photo>>() {
+            @Override
+            public void onSuccess(List<Photo> photos) {
+                if (photos == null || photos.isEmpty()) {
+                    sharedPhotos.setValue(Collections.emptyList());
+                } else {
+                    sharedPhotos.setValue(photos); // Đã sắp xếp trong getPhotosByUser
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                errorMessage.setValue("Lỗi khi tải ảnh của bạn: " + e.getMessage());
+                sharedPhotos.setValue(Collections.emptyList());
+            }
+        });
+        return sharedPhotos;
+    }
+
+
 }

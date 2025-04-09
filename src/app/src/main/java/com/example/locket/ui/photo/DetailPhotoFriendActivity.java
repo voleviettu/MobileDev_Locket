@@ -1,35 +1,54 @@
 package com.example.locket.ui.photo;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
+import com.example.locket.data.PhotoRepository;
 import com.example.locket.model.Photo;
+import com.example.locket.model.PhotoReaction;
 import com.example.locket.model.User;
+import com.example.locket.ui.profile.ProfileActivity;
 import com.example.locket.utils.NavigationUtils;
+import com.example.locket.viewmodel.PhotoReactionViewModel;
+import com.example.locket.viewmodel.PhotoViewModel;
 import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import android.media.MediaPlayer;
 
 public class DetailPhotoFriendActivity extends AppCompatActivity {
-    private ImageView btnChat, photo, userAvatar, btnShowAll;
+    private ImageView btnChat, photo, userAvatar, btnShowAll, btnOption, btnCapture, emojiHeart, emojiFire, emojiSmile;
     private TextView userName, postTime, infoText;
     private Button songButton;
     private MediaPlayer mediaPlayer;
@@ -42,7 +61,12 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
 
     private SharedPhotoViewModel sharedPhotoViewModel;
     private UserViewModel userViewModel;
+    private PhotoViewModel photoViewModel;
+
+    private PhotoReactionViewModel photoReactionViewModel;
     private List<User> allUsers;
+    String userId;
+    Photo currentPhoto;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,6 +79,8 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         userName = findViewById(R.id.user_name);
         btnShowAll = findViewById(R.id.btn_showall);
         postTime = findViewById(R.id.post_time);
+        btnOption = findViewById(R.id.btn_option);
+        btnCapture = findViewById(R.id.btn_capture);
         infoText = findViewById(R.id.photo_caption_or_location);
         songButton = findViewById(R.id.photo_song_button);
         infoText.setVisibility(View.GONE);
@@ -63,9 +89,16 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         playPauseButton = findViewById(R.id.play_pause_button);
         musicContainer = findViewById(R.id.music_progress_container);
 
+        emojiHeart = findViewById(R.id.emoji_heart);
+        emojiFire = findViewById(R.id.emoji_fire);
+        emojiSmile = findViewById(R.id.emoji_smile);
+
 
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
         sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
+        photoViewModel = new ViewModelProvider(this).get(PhotoViewModel.class);
+        photoReactionViewModel = new ViewModelProvider(this).get(PhotoReactionViewModel.class);
+
 
         userViewModel.getAllUsers().observe(this, users -> {
             if (users != null) {
@@ -75,7 +108,24 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
 
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
-                loadLatestPhoto(user.getUid());
+                userId = user.getUid();
+                ImageView btnProfile = findViewById(R.id.btn_profile);
+                if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                    Glide.with(this)
+                            .load(user.getAvatar())
+                            .circleCrop()
+                            .into(btnProfile);
+                } else {
+                    btnProfile.setImageResource(R.drawable.ic_profile);
+                }
+                // Lấy photoId từ Intent và tải chi tiết ảnh
+                String photoId = getIntent().getStringExtra("photoId");
+                if (photoId != null) {
+                    loadPhotoById(photoId);
+                } else {
+                    Toast.makeText(this, "Không tìm thấy ảnh", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
             } else {
                 Log.e("DetailPhotoFriend", "Không tìm thấy user!");
             }
@@ -85,17 +135,109 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
             Intent intent = new Intent(DetailPhotoFriendActivity.this, FullPhotoActivity.class);
             startActivity(intent);
         });
+        emojiHeart.setOnClickListener(v -> {
+            animateEmojiClick(v);
+            PhotoReaction reaction = new PhotoReaction(userId, currentPhoto.getPhotoId(), "love");
+            photoReactionViewModel.addReaction(reaction);
+        });
+
+        emojiFire.setOnClickListener(v -> {
+            animateEmojiClick(v);
+            PhotoReaction reaction = new PhotoReaction(userId, currentPhoto.getPhotoId(), "fire");
+            photoReactionViewModel.addReaction(reaction);
+        });
+
+        emojiSmile.setOnClickListener(v -> {
+            animateEmojiClick(v);
+            PhotoReaction reaction = new PhotoReaction(userId, currentPhoto.getPhotoId(), "smile");
+            photoReactionViewModel.addReaction(reaction);
+        });
 
         NavigationUtils.setChatButtonClickListener(btnChat, this);
+        NavigationUtils.setCaptureButtonClickListener(btnCapture, this);
+
+        ImageView btnProfile = findViewById(R.id.btn_profile);
+        btnProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(DetailPhotoFriendActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
+
+        btnOption.setOnClickListener(v -> {
+            View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_options, null);
+            BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+            bottomSheetDialog.setContentView(view);
+
+            bottomSheetDialog.setCanceledOnTouchOutside(true);
+
+            Button btnSave = view.findViewById(R.id.btn_save);
+            Button btnDelete = view.findViewById(R.id.btn_delete);
+
+            btnSave.setOnClickListener(view1 -> {
+                String imageUrl = currentPhoto.getImageUrl();
+                Glide.with(this)
+                        .asBitmap()
+                        .load(imageUrl)
+                        .into(new CustomTarget<Bitmap>() {
+                            @Override
+                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                saveBitmapToGallery(resource);
+                                Toast.makeText(DetailPhotoFriendActivity.this, "Ảnh đã được lưu!", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onLoadCleared(@Nullable Drawable placeholder) {
+                            }
+
+                            @Override
+                            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                                Toast.makeText(DetailPhotoFriendActivity.this, "Lỗi khi tải ảnh!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                bottomSheetDialog.dismiss();
+            });
+
+            btnDelete.setOnClickListener(view2 -> {
+                if (currentPhoto == null || userId == null) {
+                    Toast.makeText(this, "Không thể xoá ảnh (thiếu thông tin)", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                photoViewModel.deletePhoto(userId, currentPhoto,
+                        () -> {
+                            Toast.makeText(this, "Đã xoá ảnh!", Toast.LENGTH_SHORT).show();
+                            finish();
+                        },
+                        e -> {
+                            Toast.makeText(this, "Lỗi khi xoá ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+
+                bottomSheetDialog.dismiss();
+            });
+
+            bottomSheetDialog.show();
+        });
     }
 
     private void loadLatestPhoto(String userId) {
         sharedPhotoViewModel.getSharedPhotos(userId).observe(this, photos -> {
             if (photos != null && !photos.isEmpty()) {
                 Photo latestPhoto = photos.get(0);
+                currentPhoto = latestPhoto;
+                for (User u : allUsers) {
+                    if (u.getUid().equals(latestPhoto.getUserId())) {
+                        userName.setText(u.getUsername());
 
-                String username = findUsernameByUid(latestPhoto.getUserId());
-                userName.setText(username);
+                        if (u.getAvatar() != null && !u.getAvatar().isEmpty()) {
+                            Glide.with(this)
+                                    .load(u.getAvatar())
+                                    .circleCrop()
+                                    .into(userAvatar);
+                        } else {
+                            userAvatar.setImageResource(R.drawable.ic_profile);
+                        }
+                        break;
+                    }
+                }
 
                 if (latestPhoto.getCaption() != null && !latestPhoto.getCaption().isEmpty()) {
                     infoText.setText(latestPhoto.getCaption());
@@ -220,5 +362,88 @@ public class DetailPhotoFriendActivity extends AppCompatActivity {
         handler.post(updateProgressRunnable);
     }
 
+    private void saveBitmapToGallery(Bitmap bitmap) {
+        String filename = "Locket_" + System.currentTimeMillis() + ".jpg";
+        File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File file = new File(picturesDir, filename);
+
+        try {
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+
+            Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            Uri contentUri = Uri.fromFile(file);
+            mediaScanIntent.setData(contentUri);
+            sendBroadcast(mediaScanIntent);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Lỗi khi lưu ảnh!", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void animateEmojiClick(View view) {
+        view.animate()
+                .scaleX(0.8f)
+                .scaleY(0.8f)
+                .setDuration(100)
+                .withEndAction(() -> view.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(100)
+                        .start())
+                .start();
+    }
+    private void loadPhotoById(String photoId) {
+        photoViewModel.getPhotoById(photoId, new PhotoRepository.FirestoreCallback<Photo>() {
+            @Override
+            public void onSuccess(Photo retrievedPhoto) { // Đổi tên biến photo thành retrievedPhoto để tránh trùng
+                currentPhoto = retrievedPhoto;
+                if (retrievedPhoto != null) {
+                    Glide.with(DetailPhotoFriendActivity.this)
+                            .load(retrievedPhoto.getImageUrl())
+                            .into(photo); // Sử dụng ImageView photo của activity
+                    userName.setText(findUsernameByUid(retrievedPhoto.getUserId()));
+                    postTime.setText(formatTimeDifference(retrievedPhoto.getCreatedAt()));
+
+                    if (retrievedPhoto.getCaption() != null && !retrievedPhoto.getCaption().isEmpty()) {
+                        infoText.setText(retrievedPhoto.getCaption());
+                        infoText.setVisibility(View.VISIBLE);
+                    } else if (retrievedPhoto.getLocation() != null && !retrievedPhoto.getLocation().isEmpty()) {
+                        infoText.setText("\uD83C\uDF0D " + retrievedPhoto.getLocation());
+                        infoText.setVisibility(View.VISIBLE);
+                    } else if (retrievedPhoto.getMusicUrl() != null && !retrievedPhoto.getMusicUrl().isEmpty()) {
+                        songButton.setVisibility(View.VISIBLE);
+                        songButton.setOnClickListener(v -> playMusicWithProgress(retrievedPhoto.getMusicUrl()));
+                    }
+
+                    if (allUsers != null) {
+                        for (User u : allUsers) {
+                            if (u.getUid().equals(retrievedPhoto.getUserId())) {
+                                if (u.getAvatar() != null && !u.getAvatar().isEmpty()) {
+                                    Glide.with(DetailPhotoFriendActivity.this)
+                                            .load(u.getAvatar())
+                                            .circleCrop()
+                                            .into(userAvatar);
+                                } else {
+                                    userAvatar.setImageResource(R.drawable.ic_profile);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    Toast.makeText(DetailPhotoFriendActivity.this, "Không tìm thấy ảnh", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(DetailPhotoFriendActivity.this, "Lỗi khi tải ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
+    }
 }
 

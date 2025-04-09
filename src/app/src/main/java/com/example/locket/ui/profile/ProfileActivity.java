@@ -1,74 +1,89 @@
 package com.example.locket.ui.profile;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log; // *** Thêm Log ***
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast; // *** Thêm Toast ***
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer; // *** Thêm Observer ***
+import androidx.lifecycle.Observer;
 
-import com.example.locket.MyApplication; // *** Import MyApplication ***
+import com.example.locket.MyApplication;
 import com.example.locket.R;
-import com.example.locket.model.User; // *** Import User model ***
+import com.example.locket.data.CloudinaryUploader;
+import com.example.locket.model.User;
+import com.example.locket.ui.friend.FriendList;
 import com.example.locket.ui.settings.SettingsActivity;
-import com.example.locket.viewmodel.UserViewModel; // *** Import UserViewModel ***
-import com.google.firebase.auth.FirebaseAuth; // *** Import FirebaseAuth ***
-import com.google.firebase.auth.FirebaseUser; // *** Import FirebaseUser ***
+import com.example.locket.viewmodel.UserViewModel;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
-// TODO: Import thư viện load ảnh như Glide hoặc Picasso nếu bạn muốn hiển thị avatar từ URL
-// import com.bumptech.glide.Glide;
+import java.io.InputStream;
+import java.util.concurrent.Executors;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    private static final String TAG = "ProfileActivity"; // *** Thêm TAG ***
+    private static final String TAG = "ProfileActivity";
 
-    private ImageView avatarImageView; // Đổi tên biến cho rõ ràng
+    private ImageView avatarImageView;
+    private ImageView addAvatarBtn;
     private TextView usernameTextView;
     private TextView emailTextView;
     private Button btnEditProfile;
     private ImageView btnBack;
     private ImageView btnSettings;
+    private ImageView btnFriend;
 
     private UserViewModel userViewModel;
     private FirebaseAuth mAuth;
+
+    private static final int PICK_IMAGE_REQUEST = 1;
+    private Uri selectedImageUri = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // --- Khởi tạo ---
         mAuth = FirebaseAuth.getInstance();
-        // Lấy ViewModel từ Application (Cần đảm bảo MyApplication đã được cấu hình trong Manifest)
+        // Lấy ViewModel từ Application
         try {
             userViewModel = ((MyApplication) getApplication()).getUserViewModel();
         } catch (ClassCastException e) {
             Log.e(TAG, "Application không phải là instance của MyApplication hoặc ViewModel chưa được khởi tạo.", e);
             Toast.makeText(this, "Lỗi khởi tạo dữ liệu người dùng.", Toast.LENGTH_LONG).show();
-            finish(); // Đóng activity nếu không lấy được ViewModel
+            finish();
             return;
         }
 
-
-        // --- Ánh xạ các thành phần UI ---
         btnBack = findViewById(R.id.btn_back);
         avatarImageView = findViewById(R.id.profile_avatar);
         usernameTextView = findViewById(R.id.profile_username);
         emailTextView = findViewById(R.id.profile_email);
         btnEditProfile = findViewById(R.id.btn_edit_profile);
         btnSettings = findViewById(R.id.btn_settings);
+        btnFriend = findViewById(R.id.btn_friends);
+        addAvatarBtn = findViewById(R.id.add_avatar_button);
 
-        // --- Đặt giá trị tạm thời/loading ---
         usernameTextView.setText("Đang tải...");
         emailTextView.setText("Đang tải...");
         avatarImageView.setImageResource(R.drawable.default_avatar); // Ảnh avatar mặc định
 
-        // --- Lấy thông tin cơ bản từ FirebaseAuth (nhanh chóng) ---
+
         FirebaseUser firebaseUser = mAuth.getCurrentUser();
         if (firebaseUser != null) {
             // Lấy email trực tiếp từ FirebaseUser (thường luôn có sẵn sau khi đăng nhập)
@@ -82,42 +97,25 @@ public class ProfileActivity extends AppCompatActivity {
             // firebaseUser.getPhotoUrl() thường là null nếu chưa cập nhật profile Auth
 
         } else {
-            // Nếu không có người dùng nào đăng nhập, không nên ở màn hình này
             Log.e(TAG, "Không có người dùng nào đăng nhập trong ProfileActivity!");
             Toast.makeText(this, "Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
-            // TODO: Chuyển hướng về màn hình đăng nhập hoặc WelcomeActivity
-            // Intent intent = new Intent(this, WelcomeActivity.class);
-            // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            // startActivity(intent);
-            finish(); // Đóng màn hình profile
+            finish();
             return;
         }
 
-        // --- Lắng nghe dữ liệu chi tiết từ UserViewModel (bao gồm username từ Firestore) ---
         if (userViewModel != null) {
             userViewModel.getCurrentUser().observe(this, new Observer<User>() {
                 @Override
                 public void onChanged(User user) {
                     if (user != null) {
-                        // Dữ liệu User từ ViewModel đã được cập nhật (đã load từ Firestore)
                         Log.d(TAG, "Dữ liệu User từ ViewModel: " + user.getUsername() + " | " + user.getEmail());
                         usernameTextView.setText(user.getFullName()); // Lấy fullname từ User model
-                        emailTextView.setText(user.getEmail()); // Cập nhật lại email từ User model cho nhất quán
+                        emailTextView.setText(user.getEmail());
 
-                        // TODO: Xử lý hiển thị Avatar thật nếu có URL
-                         /*
-                         String avatarUrl = user.getAvatarUrl(); // Giả sử có trường avatarUrl trong User model
-                         if (avatarUrl != null && !avatarUrl.isEmpty()) {
-                             Glide.with(ProfileActivity.this)
-                                  .load(avatarUrl)
-                                  .placeholder(R.drawable.default_avatar) // Ảnh chờ load
-                                  .error(R.drawable.default_avatar) // Ảnh khi lỗi
-                                  .circleCrop() // Bo tròn nếu muốn
-                                  .into(avatarImageView);
-                         } else {
-                             avatarImageView.setImageResource(R.drawable.default_avatar);
-                         }
-                         */
+                        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                            loadImageFromUrl(user.getAvatar());
+                        }
+
 
                     } else {
                         // ViewModel trả về user null (có thể đang load hoặc load thất bại)
@@ -131,8 +129,7 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             });
 
-            // Đảm bảo ViewModel được yêu cầu load user nếu chưa có (phụ thuộc vào logic của bạn)
-            // Nếu bạn chắc chắn ViewModel đã load user ở màn hình trước đó thì không cần dòng này
+            // Đảm bảo ViewModel được yêu cầu load user nếu chưa có
             if (userViewModel.getCurrentUser().getValue() == null) {
                 Log.d(TAG,"Yêu cầu ViewModel load user: " + firebaseUser.getUid());
                 userViewModel.loadUser(firebaseUser.getUid());
@@ -141,18 +138,26 @@ public class ProfileActivity extends AppCompatActivity {
         } else {
             Log.e(TAG, "UserViewModel is null, không thể observe data.");
             usernameTextView.setText("Lỗi");
-            // Email vẫn giữ giá trị từ FirebaseAuth nếu có
         }
 
+        avatarImageView.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setType("image/*");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(intent, "Chọn ảnh đại diện"), PICK_IMAGE_REQUEST);
+        });
 
-        // --- Xử lý sự kiện các nút ---
+        addAvatarBtn.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setType("image/*");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(intent, "Chọn ảnh đại diện"), PICK_IMAGE_REQUEST);
+        });
+
         btnBack.setOnClickListener(v -> finish());
 
         btnEditProfile.setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, EditNameActivity.class);
-            // TODO: Truyền thông tin user hiện tại (nếu màn hình Edit cần)
-            // intent.putExtra("currentUsername", usernameTextView.getText().toString());
-            // intent.putExtra("currentEmail", emailTextView.getText().toString());
             startActivity(intent);
         });
 
@@ -160,5 +165,63 @@ public class ProfileActivity extends AppCompatActivity {
             Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
             startActivity(intent);
         });
+
+        btnFriend.setOnClickListener(v-> {
+            Intent intent = new Intent(ProfileActivity.this, FriendList.class);
+            startActivity(intent);
+        });
+    }
+
+    private void loadImageFromUrl(String url) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                InputStream input = new java.net.URL(url).openStream();
+                Bitmap bitmap = BitmapFactory.decodeStream(input);
+                avatarImageView.setImageBitmap(bitmap);
+
+                runOnUiThread(() -> avatarImageView.setImageBitmap(bitmap));
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(ProfileActivity.this, "Không tải được ảnh đại diện", Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            selectedImageUri = data.getData();
+
+            // Optional: Hiển thị ảnh tạm thời
+            avatarImageView.setImageURI(selectedImageUri);
+
+            // Upload ảnh lên Cloudinary trong thread mới
+            new Thread(() -> {
+                String imageUrl = CloudinaryUploader.uploadImage(ProfileActivity.this, selectedImageUri);
+                if (imageUrl != null) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(ProfileActivity.this, "Tải ảnh lên thành công", Toast.LENGTH_SHORT).show();
+                    });
+
+                    // Cập nhật Firestore
+                    userViewModel.updateUserAvatar(imageUrl);
+                } else {
+                    runOnUiThread(() -> {
+                        Toast.makeText(ProfileActivity.this, "Lỗi khi tải ảnh", Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }).start();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        if (firebaseUser != null) {
+            userViewModel.loadUser(firebaseUser.getUid());
+        }
     }
 }

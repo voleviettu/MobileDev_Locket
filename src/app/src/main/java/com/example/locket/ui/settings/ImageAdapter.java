@@ -10,23 +10,32 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide; // <<< Import thư viện Glide
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.locket.R;
-import com.example.locket.model.Photo; // Đảm bảo import đúng lớp Photo của bạn
-// import com.squareup.picasso.Picasso; // <<< Không cần Picasso nữa
+import com.example.locket.model.Photo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
 
-    private Context context;
+    private final Context context;
     private List<Photo> photoList;
+    private OnPhotoClickListener onPhotoClickListener;
+
+    public interface OnPhotoClickListener {
+        void onPhotoClick(Photo photo);
+    }
 
     public ImageAdapter(Context context, List<Photo> photoList) {
         this.context = context;
-        this.photoList = photoList;
+        this.photoList = photoList != null ? photoList : new ArrayList<>();
+    }
+
+    public void setOnPhotoClickListener(OnPhotoClickListener listener) {
+        this.onPhotoClickListener = listener;
     }
 
     @NonNull
@@ -39,9 +48,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         Photo photo = photoList.get(position);
-
         String imageUrl = photo.getImageUrl();
-        Log.d("FullPhotoActivity", "Load ảnh: " + imageUrl);
+        Log.d("ImageAdapter", "Loading image: " + imageUrl);
+
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Glide.with(context)
                     .load(imageUrl)
@@ -55,6 +64,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     .load(R.drawable.ic_logo)
                     .into(holder.imageView);
         }
+
+        holder.imageView.setOnClickListener(v -> {
+            if (onPhotoClickListener != null) {
+                onPhotoClickListener.onPhotoClick(photo);
+            }
+        });
     }
 
     @Override
@@ -72,11 +87,11 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     }
 
     public void updatePhotos(List<Photo> newPhotoList) {
-        if (newPhotoList == null) return;
-
-        this.photoList.clear();
-        this.photoList.addAll(newPhotoList);
+        if (newPhotoList == null) {
+            this.photoList = new ArrayList<>();
+        } else {
+            this.photoList = new ArrayList<>(newPhotoList);
+        }
         notifyDataSetChanged();
     }
-
 }

@@ -25,8 +25,12 @@ import androidx.camera.core.ImageCaptureException;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
+import com.example.locket.model.Photo;
+import com.example.locket.ui.friend.FriendList;
+import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
@@ -47,6 +51,8 @@ import com.example.locket.model.User;
 
 public class PhotoActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
+
+    private SharedPhotoViewModel sharedPhotoViewModel;
     private FriendViewModel friendViewModel;
     private User currentUser;
     private PreviewView previewView;
@@ -84,10 +90,21 @@ public class PhotoActivity extends AppCompatActivity {
         );
 
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
+        sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
         friendViewModel = new ViewModelProvider(this).get(FriendViewModel.class);
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
                 currentUser = user;
+                ImageView btnProfile = findViewById(R.id.btn_profile);
+                if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                    Glide.with(this)
+                            .load(user.getAvatar())
+                            .circleCrop()
+                            .into(btnProfile);
+                } else {
+                    btnProfile.setImageResource(R.drawable.ic_profile);
+                }
+
                 friendViewModel.loadFriends(currentUser.getUid());
                 friendViewModel.getFriends().observe(this, friends -> {
                     int friendCount = friends != null ? friends.size() : 0;
@@ -122,7 +139,26 @@ public class PhotoActivity extends AppCompatActivity {
         // Chuyển đến ảnh của bạn bè
         LinearLayout btnFriend = findViewById(R.id.history_container);
         btnFriend.setOnClickListener(v -> {
-            Intent intent = new Intent(PhotoActivity.this, DetailPhotoFriendActivity.class);
+            if (currentUser.getUid() == null) {
+                Toast.makeText(this, "Đang tải thông tin người dùng, vui lòng thử lại", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            sharedPhotoViewModel.getSharedPhotos(currentUser.getUid()).observe(this, photos -> {
+                if (photos != null && !photos.isEmpty()) {
+                    Photo latestSharedPhoto = photos.get(0);
+                    Intent intent = new Intent(PhotoActivity.this, DetailPhotoFriendActivity.class);
+                    intent.putExtra("photoId", latestSharedPhoto.getPhotoId());
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Không có ảnh nào được chia sẻ với bạn", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        LinearLayout btnFriendList = findViewById(R.id.btn_friends);
+        btnFriendList.setOnClickListener(v-> {
+            Intent intent = new Intent(PhotoActivity.this, FriendList.class);
             startActivity(intent);
         });
 
