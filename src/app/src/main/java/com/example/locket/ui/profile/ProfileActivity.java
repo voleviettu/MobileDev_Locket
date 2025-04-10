@@ -182,7 +182,6 @@ public class ProfileActivity extends AppCompatActivity {
                 runOnUiThread(() -> avatarImageView.setImageBitmap(bitmap));
             } catch (Exception e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(ProfileActivity.this, "Không tải được ảnh đại diện", Toast.LENGTH_SHORT).show());
             }
         });
     }

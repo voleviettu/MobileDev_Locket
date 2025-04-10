@@ -70,10 +70,31 @@ public class FullPhotoActivity extends AppCompatActivity {
         imageAdapter = new ImageAdapter(this, photoList);
 
         imageAdapter.setOnPhotoClickListener(photo -> {
-            Intent intent = new Intent(FullPhotoActivity.this, DetailPhotoFriendActivity.class);
+            Intent intent = new Intent(FullPhotoActivity.this, FeedPhotoFriendActivity.class);
             intent.putExtra("photoId", photo.getPhotoId());
+
+            String selectedFriendId = null;
+            String selectedFriendName = null;
+            String selectedFriendLastname = null;
+
+            if (!title.getText().toString().equals("Tất cả bạn bè")) {
+                for (User u : friendList) {
+                    if (u.getFullName().equals(title.getText().toString())) {
+                        selectedFriendId = u.getUid();
+                        selectedFriendName = u.getFullName();
+                        selectedFriendLastname = u.getLastname();
+                        break;
+                    }
+                }
+
+                intent.putExtra("selectedFriendId", selectedFriendId);
+                intent.putExtra("selectedFriendName", selectedFriendName);
+                intent.putExtra("selectedFriendLastname", selectedFriendLastname);
+            }
+
             startActivity(intent);
         });
+
 
         recyclerView.setAdapter(imageAdapter);
 
@@ -88,15 +109,39 @@ public class FullPhotoActivity extends AppCompatActivity {
                 // Tải danh sách bạn bè
                 friendViewModel.loadFriends(userId);
 
+                String selectedFriendId = getIntent().getStringExtra("selectedFriendId");
+                String selectedFriendName = getIntent().getStringExtra("selectedFriendName");
+                String selectedFriendLastname = getIntent().getStringExtra("selectedFriendLastname");
+
                 // Tải ảnh chia sẻ ban đầu
-                sharedPhotoViewModel.getSharedPhotos(userId).observe(this, photos -> {
-                    if (photos != null && !photos.isEmpty()) {
-                        imageAdapter.updatePhotos(photos);
+                if (selectedFriendId != null) {
+                    if ("Bạn".equals(selectedFriendLastname)) {
+                        title.setText("Bạn");
+                        sharedPhotoViewModel.getMyPhotos(userId).observe(this, photos -> {
+                            if (photos != null) {
+                                imageAdapter.updatePhotos(photos);
+                            }
+                        });
                     } else {
-                        imageAdapter.updatePhotos(new ArrayList<>());
-                        Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
+                        title.setText(selectedFriendName);
+                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriendId, userId).observe(this, photos -> {
+                            if (photos != null) {
+                                imageAdapter.updatePhotos(photos);
+                            }
+                        });
                     }
-                });
+                } else {
+                    title.setText("Tất cả bạn bè");
+                    sharedPhotoViewModel.getSharedPhotos(userId).observe(this, photos -> {
+                        if (photos != null && !photos.isEmpty()) {
+                            imageAdapter.updatePhotos(photos);
+                        } else {
+                            imageAdapter.updatePhotos(new ArrayList<>());
+                            Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+
                 ImageView btnProfile = findViewById(R.id.btn_profile);
                 if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
                     Glide.with(this)

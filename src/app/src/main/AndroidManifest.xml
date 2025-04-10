@@ -205,7 +205,7 @@
         android:name=".ui.photo.DetailPhotoActivity"
         android:windowSoftInputMode="adjustPan" />
     <activity android:name=".ui.photo.PlaceListActivity" />
-    <activity android:name=".ui.photo.DetailPhotoFriendActivity" />
+    <activity android:name=".ui.photo.FeedPhotoFriendActivity" />
     <activity android:name=".ui.photo.FullPhotoActivity" />
     <activity android:name=".ui.chat.FullChatActivity" />
     <activity android:name=".ui.settings.ChangeIconActivity" />

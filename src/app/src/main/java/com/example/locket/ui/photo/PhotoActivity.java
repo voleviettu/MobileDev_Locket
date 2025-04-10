@@ -41,7 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.example.locket.ui.profile.ProfileActivity;
-import com.example.locket.ui.photo.DetailPhotoFriendActivity;
+
 import com.example.locket.ui.chat.FullChatActivity;
 
 import androidx.lifecycle.ViewModelProvider;
@@ -147,9 +147,10 @@ public class PhotoActivity extends AppCompatActivity {
             sharedPhotoViewModel.getSharedPhotos(currentUser.getUid()).observe(this, photos -> {
                 if (photos != null && !photos.isEmpty()) {
                     Photo latestSharedPhoto = photos.get(0);
-                    Intent intent = new Intent(PhotoActivity.this, DetailPhotoFriendActivity.class);
+                    Intent intent = new Intent(PhotoActivity.this, FeedPhotoFriendActivity.class);
                     intent.putExtra("photoId", latestSharedPhoto.getPhotoId());
                     startActivity(intent);
+                    overridePendingTransition(R.anim.slide_in_up, R.anim.slide_out_down);
                 } else {
                     Toast.makeText(this, "Không có ảnh nào được chia sẻ với bạn", Toast.LENGTH_SHORT).show();
                 }
