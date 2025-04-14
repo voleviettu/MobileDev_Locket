@@ -1,5 +1,6 @@
 package com.example.locket.ui.photo;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -7,8 +8,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -19,6 +22,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
@@ -31,6 +36,7 @@ import com.example.locket.model.PhotoReaction;
 
 import com.example.locket.model.User;
 import com.example.locket.ui.profile.ProfileActivity;
+import com.example.locket.ui.settings.ReactionAdapter;
 import com.example.locket.utils.NavigationUtils;
 import com.example.locket.viewmodel.FriendViewModel;
 import com.example.locket.viewmodel.PhotoReactionViewModel;
@@ -69,6 +75,8 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
 
     private LinearLayout messageInputContainer, reactionInfoContainer, reactionAvatarsContainer;
     private TextView reactionInfoText;
+
+    private List<PhotoReaction> currentReactions = new ArrayList<>();
     private boolean adapterInitialized = false;
 
 
@@ -108,11 +116,15 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         friendViewModel = new ViewModelProvider(this).get(FriendViewModel.class);
         photoReactionViewModel = new ViewModelProvider(this).get(PhotoReactionViewModel.class);
 
-        // Quan sát reactionsLiveData một lần duy nhất
+        // Quan sát reactionsLiveData
         photoReactionViewModel.getReactionsLiveData().observe(this, reactions -> {
             if (reactions != null && !reactions.isEmpty()) {
                 reactionInfoText.setText("Hoạt động");
                 Log.d("FeedPhotoFriendActivity", "Reactions: " + reactions.size());
+
+                // Lưu danh sách reactions để dùng trong dialog
+                currentReactions.clear();
+                currentReactions.addAll(reactions);
 
                 Set<String> userIds = new HashSet<>();
                 for (PhotoReaction reaction : reactions) {
@@ -123,16 +135,16 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
 
                 int avatarCount = 0;
                 for (String userId : userIds) {
-                    if (avatarCount >= 3) break; // Giới hạn 3 avatar
+                    if (avatarCount >= 3) break;
 
                     for (User user : allUsers) {
                         if (user.getUid().equals(userId)) {
                             ImageView avatarView = new ImageView(this);
                             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(90, 90);
-                            params.setMargins(0, 0, 8, 0); // Khoảng cách giữa các avatar
+                            params.setMargins(0, 0, 6, 0);
                             avatarView.setLayoutParams(params);
-                            avatarView.setBackgroundResource(R.drawable.circle_background); // Background tròn
-                            avatarView.setPadding(2, 2, 2, 2);
+                            avatarView.setBackgroundResource(R.drawable.circle_background);
+                            avatarView.setPadding(3, 3, 3, 3);
 
                             if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
                                 Glide.with(this)
@@ -140,7 +152,7 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
                                         .circleCrop()
                                         .into(avatarView);
                             } else {
-                                avatarView.setImageResource(R.drawable.ic_profile); // Ảnh mặc định
+                                avatarView.setImageResource(R.drawable.ic_profile);
                             }
 
                             reactionAvatarsContainer.addView(avatarView);
@@ -152,7 +164,15 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
             } else {
                 reactionInfoText.setText("Chưa có hoạt động nào!");
                 reactionAvatarsContainer.removeAllViews();
+                currentReactions.clear();
                 Log.d("FeedPhotoFriendActivity", "No reactions for this photo");
+            }
+        });
+
+        // Thêm sự kiện nhấn vào reaction_info_container
+        reactionInfoContainer.setOnClickListener(v -> {
+            if (!currentReactions.isEmpty()) {
+                showReactionDetailsDialog();
             }
         });
 
@@ -334,6 +354,33 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         });
     }
 
+    private void showReactionDetailsDialog() {
+        // Tạo dialog
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_reaction_details);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        // Cho phép đóng dialog khi bấm ra ngoài
+        dialog.setCanceledOnTouchOutside(true);
+
+        // Thiết lập dialog full chiều ngang và dính vào cạnh dưới
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        params.width = WindowManager.LayoutParams.MATCH_PARENT; // Full chiều ngang
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT; // Chiều cao tự động
+        params.gravity = Gravity.BOTTOM; // Dính vào cạnh dưới
+        dialog.getWindow().setAttributes(params);
+
+        // Ánh xạ view
+        RecyclerView rvReactionList = dialog.findViewById(R.id.rv_reaction_list);
+
+        // Thiết lập RecyclerView
+        rvReactionList.setLayoutManager(new LinearLayoutManager(this));
+        ReactionAdapter adapter = new ReactionAdapter(this, currentReactions, allUsers);
+        rvReactionList.setAdapter(adapter);
+
+        // Hiển thị dialog
+        dialog.show();
+    }
     private void updatePhotoFeedAndScroll(List<User> users, List<Photo> photos, String targetPhotoId) {
         if (photos != null && !photos.isEmpty()) {
             photoList.clear();

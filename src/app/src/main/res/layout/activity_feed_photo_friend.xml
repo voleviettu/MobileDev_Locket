@@ -156,7 +156,7 @@
         android:background="@null"
         android:textColor="@color/white"
         android:textColorHint="#C1C1C1"
-        android:textSize="28sp"
+        android:textSize="24sp"
         android:textStyle="bold"
         android:layout_gravity="center_vertical" />
 

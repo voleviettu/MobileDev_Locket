@@ -12,4 +12,5 @@
     <color name="pendingButtonBackground">#888888</color>
     <color name="searchResultAddButtonBackground">#FFCC00</color>
     <color name="searchResultAddButtonText">#000000</color>
+    <color name="dialog">#242424</color>
 </resources>
