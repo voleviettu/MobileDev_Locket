@@ -26,6 +26,7 @@ import com.example.locket.utils.NavigationUtils;
 import com.example.locket.viewmodel.FriendViewModel;
 import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
+import com.example.locket.viewmodel.PhotoViewModel;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -35,6 +36,8 @@ import java.util.List;
 public class FullPhotoActivity extends AppCompatActivity {
     private UserViewModel userViewModel;
     private SharedPhotoViewModel sharedPhotoViewModel;
+
+    private PhotoViewModel photoViewModel;
     private FriendViewModel friendViewModel;
     private User currentUser;
     private String userId;
@@ -61,6 +64,7 @@ public class FullPhotoActivity extends AppCompatActivity {
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
         sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
         friendViewModel = new ViewModelProvider(this).get(FriendViewModel.class);
+        photoViewModel = new ViewModelProvider(this).get(PhotoViewModel.class);
 
         recyclerView = findViewById(R.id.recyclerView);
         btnChat = findViewById(R.id.btn_chat);
@@ -117,9 +121,13 @@ public class FullPhotoActivity extends AppCompatActivity {
                 if (selectedFriendId != null) {
                     if ("Bạn".equals(selectedFriendLastname)) {
                         title.setText("Bạn");
-                        sharedPhotoViewModel.getMyPhotos(userId).observe(this, photos -> {
-                            if (photos != null) {
+                        photoViewModel.loadUserPhotos(userId);
+                        photoViewModel.getUserPhotos().observe(this, photos -> {
+                            if (photos != null && !photos.isEmpty()) {
                                 imageAdapter.updatePhotos(photos);
+                            } else {
+                                imageAdapter.updatePhotos(new ArrayList<>());
+                                Toast.makeText(this, "Không có ảnh nào được đăng", Toast.LENGTH_SHORT).show();
                             }
                         });
                     } else {
@@ -212,13 +220,21 @@ public class FullPhotoActivity extends AppCompatActivity {
                 FriendDialog dialog = new FriendDialog(friendList, selectedFriend -> {
                     if (selectedFriend == null) {
                         title.setText("Tất cả bạn bè");
-                        sharedPhotoViewModel.getSharedPhotos(userId); // Tải tất cả ảnh gửi tới người dùng
+                        sharedPhotoViewModel.getSharedPhotos(userId);
                     } else if (selectedFriend.getLastname().equals("Bạn")) {
                         title.setText("Bạn");
-                        sharedPhotoViewModel.getMyPhotos(userId); // Tải ảnh người dùng đã đăng
+                        photoViewModel.loadUserPhotos(userId);
+                        photoViewModel.getUserPhotos().observe(this, photos -> {
+                            if (photos != null && !photos.isEmpty()) {
+                                imageAdapter.updatePhotos(photos);
+                            } else {
+                                imageAdapter.updatePhotos(new ArrayList<>());
+                                Toast.makeText(this, "Không có ảnh nào được đăng", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     } else {
                         title.setText(selectedFriend.getFullName());
-                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriend.getUid(), userId); // Tải ảnh từ bạn bè gửi tới
+                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriend.getUid(), userId);
                     }
                 });
                 dialog.show(getSupportFragmentManager(), "friendPopup");
