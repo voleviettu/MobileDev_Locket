@@ -6,10 +6,12 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +43,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FeedPhotoFriendActivity extends AppCompatActivity {
 
@@ -62,6 +66,9 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
     private ImageView emojiHeart, emojiFire, emojiSmile;
 
     private ImageView btnProfile, btnChat, btnShowAll, btnCapture, btnOption;
+
+    private LinearLayout messageInputContainer, reactionInfoContainer, reactionAvatarsContainer;
+    private TextView reactionInfoText;
     private boolean adapterInitialized = false;
 
 
@@ -89,13 +96,65 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         emojiFire = findViewById(R.id.emoji_fire);
         emojiSmile = findViewById(R.id.emoji_smile);
 
+        messageInputContainer = findViewById(R.id.message_input_container); // Khởi tạo container
+        reactionInfoContainer = findViewById(R.id.reaction_info_container); // Khởi tạo container
+        reactionInfoText = findViewById(R.id.tv_reaction_info);
+        reactionAvatarsContainer = findViewById(R.id.reaction_avatars_container);
+
 
         sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
         photoViewModel = new ViewModelProvider(this).get(PhotoViewModel.class);
         friendViewModel = new ViewModelProvider(this).get(FriendViewModel.class);
+        photoReactionViewModel = new ViewModelProvider(this).get(PhotoReactionViewModel.class);
 
-        photoReactionViewModel = new PhotoReactionViewModel();
+        // Quan sát reactionsLiveData một lần duy nhất
+        photoReactionViewModel.getReactionsLiveData().observe(this, reactions -> {
+            if (reactions != null && !reactions.isEmpty()) {
+                reactionInfoText.setText("Hoạt động");
+                Log.d("FeedPhotoFriendActivity", "Reactions: " + reactions.size());
+
+                Set<String> userIds = new HashSet<>();
+                for (PhotoReaction reaction : reactions) {
+                    userIds.add(reaction.getUserId());
+                }
+
+                reactionAvatarsContainer.removeAllViews();
+
+                int avatarCount = 0;
+                for (String userId : userIds) {
+                    if (avatarCount >= 3) break; // Giới hạn 3 avatar
+
+                    for (User user : allUsers) {
+                        if (user.getUid().equals(userId)) {
+                            ImageView avatarView = new ImageView(this);
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(90, 90);
+                            params.setMargins(0, 0, 8, 0); // Khoảng cách giữa các avatar
+                            avatarView.setLayoutParams(params);
+                            avatarView.setBackgroundResource(R.drawable.circle_background); // Background tròn
+                            avatarView.setPadding(2, 2, 2, 2);
+
+                            if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                                Glide.with(this)
+                                        .load(user.getAvatar())
+                                        .circleCrop()
+                                        .into(avatarView);
+                            } else {
+                                avatarView.setImageResource(R.drawable.ic_profile); // Ảnh mặc định
+                            }
+
+                            reactionAvatarsContainer.addView(avatarView);
+                            avatarCount++;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                reactionInfoText.setText("Chưa có hoạt động nào!");
+                reactionAvatarsContainer.removeAllViews();
+                Log.d("FeedPhotoFriendActivity", "No reactions for this photo");
+            }
+        });
 
         userViewModel.getCurrentUser().observe(this, currentUser -> {
             if (currentUser != null) {
@@ -259,16 +318,19 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         emojiHeart.setOnClickListener(v -> {
             animateEmojiClick(v);
             photoReactionViewModel.addReaction(new PhotoReaction(currentUserId, currentPhoto.getPhotoId(), "love"));
+            updateUIBasedOnPhotoOwner();
         });
 
         emojiFire.setOnClickListener(v -> {
             animateEmojiClick(v);
             photoReactionViewModel.addReaction(new PhotoReaction(currentUserId, currentPhoto.getPhotoId(), "fire"));
+            updateUIBasedOnPhotoOwner();
         });
 
         emojiSmile.setOnClickListener(v -> {
             animateEmojiClick(v);
             photoReactionViewModel.addReaction(new PhotoReaction(currentUserId, currentPhoto.getPhotoId(), "smile"));
+            updateUIBasedOnPhotoOwner();
         });
     }
 
@@ -292,6 +354,7 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
                     super.onPageSelected(position);
                     if (position < photoList.size()) {
                         currentPhoto = photoList.get(position);
+                        updateUIBasedOnPhotoOwner();
                     }
                 }
             });
@@ -323,8 +386,31 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
                 FeedPhotoFriendActivity.this
         );
         viewPager2.setAdapter(adapter);
+        if (!photoList.isEmpty()) {
+            currentPhoto = photoList.get(0);
+            updateUIBasedOnPhotoOwner();
+        }
     }
+    private void updateUIBasedOnPhotoOwner() {
+        if (currentPhoto == null || currentUserId == null) {
+            Log.w("FeedPhotoFriendActivity", "currentPhoto or currentUserId is null");
+            messageInputContainer.setVisibility(View.VISIBLE);
+            reactionInfoContainer.setVisibility(View.GONE);
+            return;
+        }
 
+        boolean isOwnPhoto = currentPhoto.getUserId().equals(currentUserId);
+        Log.d("FeedPhotoFriendActivity", "Is own photo: " + isOwnPhoto);
+
+        if (isOwnPhoto) {
+            messageInputContainer.setVisibility(View.GONE);
+            reactionInfoContainer.setVisibility(View.VISIBLE);
+            photoReactionViewModel.fetchReactionsForPhoto(currentPhoto.getPhotoId());
+        } else {
+            messageInputContainer.setVisibility(View.VISIBLE);
+            reactionInfoContainer.setVisibility(View.GONE);
+        }
+    }
     private void saveBitmapToGallery(Bitmap bitmap) {
         String filename = "Locket_" + System.currentTimeMillis() + ".jpg";
         File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);

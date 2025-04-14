@@ -126,6 +126,51 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/reaction_info_container"
+        android:layout_width="wrap_content"
+        android:layout_height="90dp"
+        android:background="@drawable/button_oval"
+        android:layout_marginHorizontal="10dp"
+        android:padding="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/btn_photo_container"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.5">
+
+    <ImageView
+        android:id="@+id/reaction_sparkle_icon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="10dp"
+        app:tint="@color/gold"
+        android:src="@drawable/ic_sparkle" />
+
+    <TextView
+        android:id="@+id/tv_reaction_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="8dp"
+        android:background="@null"
+        android:textColor="@color/white"
+        android:textColorHint="#C1C1C1"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_vertical" />
+
+    <LinearLayout
+        android:id="@+id/reaction_avatars_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:layout_gravity="center_vertical" />
+</LinearLayout>
+
+    <LinearLayout
         android:id="@+id/btn_photo_container"
         android:layout_width="0dp"
         android:layout_height="50dp"
