@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -31,6 +32,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
+import com.example.locket.model.Message;
 import com.example.locket.model.Photo;
 import com.example.locket.model.PhotoReaction;
 
@@ -39,6 +41,7 @@ import com.example.locket.ui.profile.ProfileActivity;
 import com.example.locket.ui.settings.ReactionAdapter;
 import com.example.locket.utils.NavigationUtils;
 import com.example.locket.viewmodel.FriendViewModel;
+import com.example.locket.viewmodel.MessageViewModel;
 import com.example.locket.viewmodel.PhotoReactionViewModel;
 import com.example.locket.viewmodel.SharedPhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
@@ -74,7 +77,7 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
     private ImageView btnProfile, btnChat, btnShowAll, btnCapture, btnOption;
 
     private LinearLayout messageInputContainer, reactionInfoContainer, reactionAvatarsContainer;
-    private TextView reactionInfoText;
+    private TextView reactionInfoText, inputMessage;
 
     private List<PhotoReaction> currentReactions = new ArrayList<>();
     private boolean adapterInitialized = false;
@@ -97,7 +100,7 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         btnOption = findViewById(R.id.btn_option);
         btnCapture = findViewById(R.id.btn_capture);
         btnProfile = findViewById(R.id.btn_profile);
-
+        inputMessage = findViewById(R.id.input_message);
         title = findViewById(R.id.tv_title);
 
         emojiHeart = findViewById(R.id.emoji_heart);
@@ -175,6 +178,13 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
                 showReactionDetailsDialog();
             }
         });
+
+        // Thêm sự kiện nhấn vào input_message thay vì message_input_container
+        if (inputMessage != null) {
+            inputMessage.setOnClickListener(v -> showMessageInputDialog());
+        } else {
+            Log.e("FeedPhotoFriendActivity", "input_message is null. Check your layout.");
+        }
 
         userViewModel.getCurrentUser().observe(this, currentUser -> {
             if (currentUser != null) {
@@ -354,6 +364,98 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         });
     }
 
+    private void showMessageInputDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_message_input);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        dialog.setCanceledOnTouchOutside(true);
+
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        params.width = WindowManager.LayoutParams.MATCH_PARENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.gravity = Gravity.BOTTOM;
+        dialog.getWindow().setAttributes(params);
+
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        EditText etMessageInput = dialog.findViewById(R.id.et_message_input);
+        ImageView ivSendMessage = dialog.findViewById(R.id.iv_send_message);
+
+        // Tìm user sở hữu ảnh (dựa trên currentPhoto.getUserId())
+        String photoOwnerLastname = "Người dùng";
+        String receiverId = currentPhoto.getUserId();
+        for (User user : allUsers) {
+            if (user.getUid().equals(currentPhoto.getUserId())) {
+                photoOwnerLastname = user.getLastname() != null && !user.getLastname().isEmpty()
+                        ? user.getLastname()
+                        : user.getUsername() != null && !user.getUsername().isEmpty()
+                        ? user.getUsername()
+                        : "Người dùng";
+                break;
+            }
+        }
+
+        // Đặt hint động: "Trả lời + Lastname"
+        etMessageInput.setHint("Trả lời " + photoOwnerLastname + "...");
+
+        etMessageInput.requestFocus();
+
+        // Theo dõi sự thay đổi trong EditText và đổi background của ImageView
+        etMessageInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().trim().isEmpty()) {
+                    ivSendMessage.setBackgroundResource(R.drawable.circle_background);
+                } else {
+                    ivSendMessage.setBackgroundResource(R.drawable.circle_background_yellow);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        // Khởi tạo MessageViewModel
+        MessageViewModel messageViewModel = new ViewModelProvider(this).get(MessageViewModel.class);
+
+        // Quan sát kết quả gửi tin nhắn
+        messageViewModel.getSendMessageSuccess().observe(this, success -> {
+            if (success != null && success) {
+                Toast.makeText(this, "Tin nhắn đã gửi!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+
+        messageViewModel.getSendMessageError().observe(this, error -> {
+            if (error != null) {
+                Toast.makeText(this, "Lỗi khi gửi tin nhắn: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        ivSendMessage.setOnClickListener(v -> {
+            String messageContent = etMessageInput.getText().toString().trim();
+            if (!messageContent.isEmpty()) {
+                // Tạo tin nhắn
+                Message message = new Message(
+                        currentUserId, // Người gửi
+                        receiverId, // Người nhận (chủ của ảnh)
+                        messageContent, // Nội dung tin nhắn
+                        currentPhoto.getPhotoId() // ID của ảnh
+                );
+
+                // Gửi tin nhắn qua ViewModel
+                messageViewModel.sendMessage(message);
+            } else {
+                Toast.makeText(this, "Vui lòng nhập tin nhắn!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
     private void showReactionDetailsDialog() {
         // Tạo dialog
         Dialog dialog = new Dialog(this);
