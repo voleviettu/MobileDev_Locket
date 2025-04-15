@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         //new FriendViewModel().acceptFriendRequest("6AFqeqFFK9QoWkHSW4iQ7XXKlgK2", "N1vOkqQ7BQSHHHclZBJ8j28ED6P2");
 
         // !!! XÓA DÒNG NÀY KHI CÓ NÚT LOGOUT THẬT !!!
-         //FirebaseAuth.getInstance().signOut();
+        // FirebaseAuth.getInstance().signOut();
          Log.d(TAG, "!!! ĐÃ GỌI signOut() TẠM THỜI TRONG MAINACTIVITY !!!");
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
