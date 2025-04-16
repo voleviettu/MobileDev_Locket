@@ -7,28 +7,43 @@ import androidx.lifecycle.ViewModel;
 import com.example.locket.model.Message;
 import com.example.locket.data.MessageRepository;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class MessageViewModel extends ViewModel {
     private final MessageRepository messageRepository;
     private final MutableLiveData<Boolean> sendMessageSuccess;
     private final MutableLiveData<String> sendMessageError;
+    private final MutableLiveData<Map<String, Message>> latestMessages;
 
     public MessageViewModel() {
         this.messageRepository = new MessageRepository();
         this.sendMessageSuccess = new MutableLiveData<>();
         this.sendMessageError = new MutableLiveData<>();
+        this.latestMessages = new MutableLiveData<>(new HashMap<>());
     }
 
     public void sendMessage(Message message) {
         messageRepository.sendMessage(
                 message,
-                messageId -> {
-                    // Thành công: Gửi tín hiệu thành công qua LiveData
-                    sendMessageSuccess.postValue(true);
+                messageId -> sendMessageSuccess.postValue(true),
+                e -> sendMessageError.postValue(e.getMessage())
+        );
+    }
+
+    public void getLatestMessage(String userId1, String userId2, String friendId) {
+        messageRepository.getLatestMessage(
+                userId1,
+                userId2,
+                message -> {
+                    Map<String, Message> currentMessages = latestMessages.getValue();
+                    if (currentMessages == null) {
+                        currentMessages = new HashMap<>();
+                    }
+                    currentMessages.put(friendId, message);
+                    latestMessages.postValue(currentMessages);
                 },
-                e -> {
-                    // Thất bại: Gửi lỗi qua LiveData
-                    sendMessageError.postValue(e.getMessage());
-                }
+                e -> sendMessageError.postValue(e.getMessage())
         );
     }
 
@@ -38,6 +53,10 @@ public class MessageViewModel extends ViewModel {
 
     public LiveData<String> getSendMessageError() {
         return sendMessageError;
+    }
+
+    public LiveData<Map<String, Message>> getLatestMessages() {
+        return latestMessages;
     }
 
     @Override
