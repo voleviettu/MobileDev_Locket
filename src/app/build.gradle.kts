@@ -72,4 +72,6 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-full:6.0")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    implementation("com.google.firebase:firebase-messaging:24.0.3")
 }
