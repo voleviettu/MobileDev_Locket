@@ -15,18 +15,23 @@ public class MessageViewModel extends ViewModel {
     private final MutableLiveData<Boolean> sendMessageSuccess;
     private final MutableLiveData<String> sendMessageError;
     private final MutableLiveData<Map<String, Message>> latestMessages;
+    private final MutableLiveData<String> latestFriendId; // Thêm để lưu friendId
 
     public MessageViewModel() {
         this.messageRepository = new MessageRepository();
         this.sendMessageSuccess = new MutableLiveData<>();
         this.sendMessageError = new MutableLiveData<>();
         this.latestMessages = new MutableLiveData<>(new HashMap<>());
+        this.latestFriendId = new MutableLiveData<>(); // Khởi tạo
     }
 
     public void sendMessage(Message message) {
         messageRepository.sendMessage(
                 message,
-                messageId -> sendMessageSuccess.postValue(true),
+                messageId -> {
+                    sendMessageSuccess.postValue(true);
+                    latestFriendId.postValue(message.getReceiverId()); // Lưu friendId khi gửi thành công
+                },
                 e -> sendMessageError.postValue(e.getMessage())
         );
     }
@@ -57,6 +62,10 @@ public class MessageViewModel extends ViewModel {
 
     public LiveData<Map<String, Message>> getLatestMessages() {
         return latestMessages;
+    }
+
+    public LiveData<String> getLatestFriendId() {
+        return latestFriendId;
     }
 
     @Override

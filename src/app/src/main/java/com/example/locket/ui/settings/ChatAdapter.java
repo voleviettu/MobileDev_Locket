@@ -1,5 +1,6 @@
 package com.example.locket.ui.settings;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,14 +13,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.locket.R;
 import com.example.locket.model.Chat;
+import com.example.locket.ui.chat.ChatDetailActivity;
 
 import java.util.List;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
     private List<Chat> chatList;
+    private String currentUserId; // Thêm để truyền vào ChatDetailActivity
 
-    public ChatAdapter(List<Chat> chatList) {
+    public ChatAdapter(List<Chat> chatList, String currentUserId) {
         this.chatList = chatList;
+        this.currentUserId = currentUserId;
     }
 
     @NonNull
@@ -36,7 +40,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         holder.tvName.setText(chat.getName());
         holder.tvMessage.setText(chat.getMessage());
 
-        // Nếu không có tin nhắn (message là "Chưa có câu trả lời nào!"), ẩn tv_time
         if ("Chưa có câu trả lời nào!".equals(chat.getMessage())) {
             holder.tvTime.setVisibility(View.GONE);
         } else {
@@ -44,7 +47,6 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             holder.tvTime.setText(chat.getTime());
         }
 
-        // Load ảnh đại diện bằng Glide
         if (chat.getAvatarUrl() != null && !chat.getAvatarUrl().isEmpty()) {
             Glide.with(holder.ivProfile.getContext())
                     .load(chat.getAvatarUrl())
@@ -53,6 +55,16 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         } else {
             holder.ivProfile.setImageResource(R.drawable.ic_profile);
         }
+
+        // Sự kiện nhấn để mở ChatDetailActivity
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(holder.itemView.getContext(), ChatDetailActivity.class);
+            intent.putExtra("currentUserId", currentUserId);
+            intent.putExtra("friendId", chat.getFriendId());
+            intent.putExtra("friendName", chat.getName());
+            intent.putExtra("friendAvatar", chat.getAvatarUrl());
+            holder.itemView.getContext().startActivity(intent);
+        });
     }
 
     @Override

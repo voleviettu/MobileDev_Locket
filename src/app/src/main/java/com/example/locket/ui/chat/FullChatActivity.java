@@ -19,8 +19,10 @@ import com.example.locket.viewmodel.MessageViewModel;
 import com.example.locket.viewmodel.UserViewModel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class FullChatActivity extends AppCompatActivity {
@@ -42,7 +44,7 @@ public class FullChatActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         chatList = new ArrayList<>();
-        chatAdapter = new ChatAdapter(chatList);
+        chatAdapter = new ChatAdapter(chatList, currentUserId); // Truyền currentUserId
         recyclerView.setAdapter(chatAdapter);
 
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
@@ -55,6 +57,9 @@ public class FullChatActivity extends AppCompatActivity {
         userViewModel.getCurrentUser().observe(this, currentUser -> {
             if (currentUser != null) {
                 currentUserId = currentUser.getUid();
+                // Cập nhật adapter với currentUserId
+                chatAdapter = new ChatAdapter(chatList, currentUserId);
+                recyclerView.setAdapter(chatAdapter);
                 // Load danh sách bạn bè
                 friendViewModel.loadFriends(currentUserId);
             }
@@ -64,7 +69,6 @@ public class FullChatActivity extends AppCompatActivity {
         friendViewModel.getFriends().observe(this, friends -> {
             if (friends != null && !friends.isEmpty()) {
                 chatList.clear();
-                // Thêm tất cả bạn bè vào chatList ngay lập tức
                 for (User friend : friends) {
                     Chat chat = new Chat(
                             friend.getUid(),
@@ -77,7 +81,6 @@ public class FullChatActivity extends AppCompatActivity {
                 }
                 chatAdapter.notifyDataSetChanged();
 
-                // Lấy tin nhắn gần nhất cho từng người bạn
                 for (User friend : friends) {
                     messageViewModel.getLatestMessage(currentUserId, friend.getUid(), friend.getUid());
                 }
@@ -88,24 +91,18 @@ public class FullChatActivity extends AppCompatActivity {
         messageViewModel.getLatestMessages().observe(this, messagesMap -> {
             if (messagesMap == null) return;
 
-            for (int i = 0; i < chatList.size(); i++) {
-                Chat chat = chatList.get(i);
-                Message message = messagesMap.get(chat.getFriendId());
-                if (message != null) {
-                    // Cập nhật tin nhắn và thời gian
-                    String displayMessage = message.getContent();
-                    String displayTime = calculateTimeAgo(message.getCreatedAt());
+            updateChatList(messagesMap);
+        });
 
-                    Chat updatedChat = new Chat(
-                            chat.getFriendId(),
-                            chat.getName(),
-                            displayMessage,
-                            displayTime,
-                            chat.getAvatarUrl()
-                    );
-                    chatList.set(i, updatedChat);
-                    chatAdapter.notifyItemChanged(i);
-                }
+        // Quan sát sự kiện gửi tin nhắn thành công
+        messageViewModel.getSendMessageSuccess().observe(this, success -> {
+            if (success != null && success) {
+                // Lắng nghe friendId của cuộc trò chuyện vừa gửi
+                messageViewModel.getLatestFriendId().observe(this, friendId -> {
+                    if (friendId != null) {
+                        messageViewModel.getLatestMessage(currentUserId, friendId, friendId);
+                    }
+                });
             }
         });
 
@@ -116,11 +113,48 @@ public class FullChatActivity extends AppCompatActivity {
         });
     }
 
+    private void updateChatList(Map<String, Message> messagesMap) {
+        for (int i = 0; i < chatList.size(); i++) {
+            Chat chat = chatList.get(i);
+            Message message = messagesMap.get(chat.getFriendId());
+            if (message != null) {
+                String displayMessage = message.getContent();
+                String displayTime = calculateTimeAgo(message.getCreatedAt());
+
+                Chat updatedChat = new Chat(
+                        chat.getFriendId(),
+                        chat.getName(),
+                        displayMessage,
+                        displayTime,
+                        chat.getAvatarUrl()
+                );
+                updatedChat.setCreatedAt(message.getCreatedAt()); // Lưu createdAt
+                chatList.set(i, updatedChat);
+            }
+        }
+
+        // Sắp xếp dựa trên createdAt
+        Collections.sort(chatList, (chat1, chat2) -> {
+            if ("Chưa có câu trả lời nào!".equals(chat1.getMessage())) return 1;
+            if ("Chưa có câu trả lời nào!".equals(chat2.getMessage())) return -1;
+            if (chat1.getCreatedAt() == null) return 1;
+            if (chat2.getCreatedAt() == null) return -1;
+            return chat2.getCreatedAt().compareTo(chat1.getCreatedAt()); // Sắp xếp theo thời gian thực
+        });
+
+        chatAdapter.notifyDataSetChanged();
+    }
+
     private String calculateTimeAgo(Date createdAt) {
         if (createdAt == null) return "";
         long now = System.currentTimeMillis();
         long messageTime = createdAt.getTime();
         long diffInMillis = now - messageTime;
+
+        long diffInSeconds = TimeUnit.MILLISECONDS.toSeconds(diffInMillis);
+        if (diffInSeconds < 60) {
+            return "Vừa xong"; // Hiển thị "Vừa xong" nếu dưới 1 phút
+        }
 
         long diffInMinutes = TimeUnit.MILLISECONDS.toMinutes(diffInMillis);
         if (diffInMinutes < 60) {

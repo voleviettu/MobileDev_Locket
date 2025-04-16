@@ -208,6 +208,7 @@
     <activity android:name=".ui.photo.FeedPhotoFriendActivity" />
     <activity android:name=".ui.photo.FullPhotoActivity" />
     <activity android:name=".ui.chat.FullChatActivity" />
+    <activity android:name=".ui.chat.ChatDetailActivity" />
     <activity android:name=".ui.settings.ChangeIconActivity" />
     <activity android:name=".ui.photo.UploadImageActivity" />
     <activity android:name=".ui.profile.ProfileActivity"/>

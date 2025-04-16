@@ -425,7 +425,6 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         // Quan sát kết quả gửi tin nhắn
         messageViewModel.getSendMessageSuccess().observe(this, success -> {
             if (success != null && success) {
-                Toast.makeText(this, "Tin nhắn đã gửi!", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
         });
