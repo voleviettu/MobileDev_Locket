@@ -35,7 +35,6 @@ import com.example.locket.R;
 import com.example.locket.model.Message;
 import com.example.locket.model.Photo;
 import com.example.locket.model.PhotoReaction;
-
 import com.example.locket.model.User;
 import com.example.locket.ui.profile.ProfileActivity;
 import com.example.locket.ui.settings.ReactionAdapter;
@@ -72,17 +71,17 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
     private TextView title;
     private User selectedFriend = null;
 
-    private ImageView emojiHeart, emojiFire, emojiSmile;
-
+    private ImageView emojiHeart, emojiFire, emojiSmile, emojiAnotherReact;
     private ImageView btnProfile, btnChat, btnShowAll, btnCapture, btnOption;
-
     private LinearLayout messageInputContainer, reactionInfoContainer, reactionAvatarsContainer;
     private TextView reactionInfoText, inputMessage;
 
     private List<PhotoReaction> currentReactions = new ArrayList<>();
     private boolean adapterInitialized = false;
 
-
+    // Đường dẫn hoặc ID tài nguyên cho quảng cáo
+    private static final String AD_IMAGE_URL = String.valueOf(R.drawable.ad); // Sử dụng drawable cho ảnh cục bộ
+    // private static final String AD_IMAGE_URL = "https://your-server.com/ad_image.png"; // Nếu dùng URL
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -106,12 +105,12 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         emojiHeart = findViewById(R.id.emoji_heart);
         emojiFire = findViewById(R.id.emoji_fire);
         emojiSmile = findViewById(R.id.emoji_smile);
+        emojiAnotherReact = findViewById(R.id.emoji_another_react);
 
-        messageInputContainer = findViewById(R.id.message_input_container); // Khởi tạo container
-        reactionInfoContainer = findViewById(R.id.reaction_info_container); // Khởi tạo container
+        messageInputContainer = findViewById(R.id.message_input_container);
+        reactionInfoContainer = findViewById(R.id.reaction_info_container);
         reactionInfoText = findViewById(R.id.tv_reaction_info);
         reactionAvatarsContainer = findViewById(R.id.reaction_avatars_container);
-
 
         sharedPhotoViewModel = new ViewModelProvider(this).get(SharedPhotoViewModel.class);
         userViewModel = ((MyApplication) getApplication()).getUserViewModel();
@@ -119,13 +118,73 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         friendViewModel = new ViewModelProvider(this).get(FriendViewModel.class);
         photoReactionViewModel = new ViewModelProvider(this).get(PhotoReactionViewModel.class);
 
+        // Kiểm tra tài khoản premium và cập nhật photoList
+        userViewModel.getCurrentUser().observe(this, currentUser -> {
+            if (currentUser != null) {
+                currentUserId = currentUser.getUid();
+
+                if (currentUser.getAvatar() != null && !currentUser.getAvatar().isEmpty()) {
+                    Glide.with(this).load(currentUser.getAvatar()).circleCrop().into(btnProfile);
+                }
+
+                friendViewModel.loadFriends(currentUserId);
+                friendViewModel.getFriends().observe(this, friends -> {
+                    friendList.clear();
+                    if (friends != null) {
+                        friendList.addAll(friends);
+                    }
+                    if (currentUser != null) {
+                        User self = new User(
+                                currentUser.getUid(),
+                                currentUser.getEmail(),
+                                "",
+                                "Bạn",
+                                currentUser.getUsername(),
+                                currentUser.getAvatar(),
+                                currentUser.isPremium()
+                        );
+                        friendList.add(self);
+                    }
+                });
+
+                userViewModel.getAllUsers().observe(this, users -> {
+                    if (users != null) {
+                        allUsers.clear();
+                        allUsers.addAll(users);
+                    }
+
+                    if (adapterInitialized) return;
+
+                    boolean isPremium = currentUser.isPremium();
+                    if (selectedFriendId == null) {
+                        title.setText("Tất cả bạn bè");
+                        sharedPhotoViewModel.getSharedPhotos(currentUserId).observe(this, sharedPhotos -> {
+                            updatePhotoFeedAndScroll(users, sharedPhotos, targetPhotoId, isPremium);
+                            adapterInitialized = true;
+                        });
+                    } else if ("Bạn".equals(selectedFriendLastname)) {
+                        title.setText("Bạn");
+                        sharedPhotoViewModel.getMyPhotos(currentUserId).observe(this, sharedPhotos -> {
+                            updatePhotoFeedAndScroll(users, sharedPhotos, targetPhotoId, isPremium);
+                            adapterInitialized = true;
+                        });
+                    } else {
+                        title.setText(selectedFriendName);
+                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriendId, currentUserId).observe(this, sharedPhotos -> {
+                            updatePhotoFeedAndScroll(users, sharedPhotos, targetPhotoId, isPremium);
+                            adapterInitialized = true;
+                        });
+                    }
+                });
+            }
+        });
+
         // Quan sát reactionsLiveData
         photoReactionViewModel.getReactionsLiveData().observe(this, reactions -> {
             if (reactions != null && !reactions.isEmpty()) {
                 reactionInfoText.setText("Hoạt động");
                 Log.d("FeedPhotoFriendActivity", "Reactions: " + reactions.size());
 
-                // Lưu danh sách reactions để dùng trong dialog
                 currentReactions.clear();
                 currentReactions.addAll(reactions);
 
@@ -172,78 +231,17 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
             }
         });
 
-        // Thêm sự kiện nhấn vào reaction_info_container
         reactionInfoContainer.setOnClickListener(v -> {
             if (!currentReactions.isEmpty()) {
                 showReactionDetailsDialog();
             }
         });
 
-        // Thêm sự kiện nhấn vào input_message thay vì message_input_container
         if (inputMessage != null) {
             inputMessage.setOnClickListener(v -> showMessageInputDialog());
         } else {
             Log.e("FeedPhotoFriendActivity", "input_message is null. Check your layout.");
         }
-
-        userViewModel.getCurrentUser().observe(this, currentUser -> {
-            if (currentUser != null) {
-                currentUserId = currentUser.getUid();
-
-                if (currentUser.getAvatar() != null && !currentUser.getAvatar().isEmpty()) {
-                    Glide.with(this).load(currentUser.getAvatar()).circleCrop().into(btnProfile);
-                }
-
-                friendViewModel.loadFriends(currentUserId);
-                friendViewModel.getFriends().observe(this, friends -> {
-                    friendList.clear();
-                    if (friends != null) {
-                        friendList.addAll(friends);
-                    }
-                    if (currentUser != null) {
-                        User self = new User(
-                                currentUser.getUid(),
-                                currentUser.getEmail(),
-                                "",
-                                "Bạn",
-                                currentUser.getUsername(),
-                                currentUser.getAvatar(),
-                                currentUser.isPremium()
-                        );
-                        friendList.add(self);
-                    }
-                });
-
-                userViewModel.getAllUsers().observe(this, users -> {
-                    if (users != null) {
-                        allUsers.clear();
-                        allUsers.addAll(users);
-                    }
-
-                    if (adapterInitialized) return;
-
-                    if (selectedFriendId == null) {
-                        title.setText("Tất cả bạn bè");
-                        sharedPhotoViewModel.getSharedPhotos(currentUserId).observe(this, sharedPhotos -> {
-                            updatePhotoFeedAndScroll(users, sharedPhotos, targetPhotoId);
-                            adapterInitialized = true;
-                        });
-                    } else if ("Bạn".equals(selectedFriendLastname)) {
-                        title.setText("Bạn");
-                        sharedPhotoViewModel.getMyPhotos(currentUserId).observe(this, sharedPhotos -> {
-                            updatePhotoFeedAndScroll(users, sharedPhotos, targetPhotoId);
-                            adapterInitialized = true;
-                        });
-                    } else {
-                        title.setText(selectedFriendName);
-                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriendId, currentUserId).observe(this, sharedPhotos -> {
-                            updatePhotoFeedAndScroll(users, sharedPhotos, targetPhotoId);
-                            adapterInitialized = true;
-                        });
-                    }
-                });
-            }
-        });
 
         title.setOnClickListener(v -> {
             if (!friendList.isEmpty()) {
@@ -272,18 +270,23 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
             if (selectedFriend != null) {
                 intent.putExtra("selectedFriendId", selectedFriend.getUid());
                 intent.putExtra("selectedFriendName", selectedFriend.getFullName());
-                intent.putExtra("selectedFriendLastname", selectedFriend.getLastname()); // để kiểm tra "Bạn"
+                intent.putExtra("selectedFriendLastname", selectedFriend.getLastname());
             }
             startActivity(intent);
         });
+
         btnProfile.setOnClickListener(v -> {
             Intent intent = new Intent(FeedPhotoFriendActivity.this, ProfileActivity.class);
             startActivity(intent);
         });
+
         NavigationUtils.setChatButtonClickListener(btnChat, this);
         NavigationUtils.setCaptureButtonClickListener(btnCapture, this);
 
         btnOption.setOnClickListener(v -> {
+            if (currentPhoto == null || currentPhoto.isAd()) {
+                return; // Không hiển thị tùy chọn cho quảng cáo
+            }
             View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_options, null);
             BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
             bottomSheetDialog.setContentView(view);
@@ -333,7 +336,6 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
                             } else {
                                 currentPhoto = photoList.get(Math.min(viewPager2.getCurrentItem(), photoList.size() - 1));
                             }
-
                         },
                         e -> {
                             Toast.makeText(this, "Lỗi khi xoá ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -346,147 +348,52 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         });
 
         emojiHeart.setOnClickListener(v -> {
+            if (currentPhoto == null || currentPhoto.isAd()) return;
             animateEmojiClick(v);
             photoReactionViewModel.addReaction(new PhotoReaction(currentUserId, currentPhoto.getPhotoId(), "love"));
             updateUIBasedOnPhotoOwner();
         });
 
         emojiFire.setOnClickListener(v -> {
+            if (currentPhoto == null || currentPhoto.isAd()) return;
             animateEmojiClick(v);
             photoReactionViewModel.addReaction(new PhotoReaction(currentUserId, currentPhoto.getPhotoId(), "fire"));
             updateUIBasedOnPhotoOwner();
         });
 
         emojiSmile.setOnClickListener(v -> {
+            if (currentPhoto == null || currentPhoto.isAd()) return;
             animateEmojiClick(v);
             photoReactionViewModel.addReaction(new PhotoReaction(currentUserId, currentPhoto.getPhotoId(), "smile"));
             updateUIBasedOnPhotoOwner();
         });
+
+        emojiAnotherReact.setOnClickListener(v -> {
+            if (currentPhoto == null || currentPhoto.isAd()) return;
+            animateEmojiClick(v);
+            photoReactionViewModel.addReaction(new PhotoReaction(currentUserId, currentPhoto.getPhotoId(), "another_react"));
+            updateUIBasedOnPhotoOwner();
+        });
     }
 
-    private void showMessageInputDialog() {
-        Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.dialog_message_input);
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-
-        dialog.setCanceledOnTouchOutside(true);
-
-        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-        params.width = WindowManager.LayoutParams.MATCH_PARENT;
-        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        params.gravity = Gravity.BOTTOM;
-        dialog.getWindow().setAttributes(params);
-
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-
-        EditText etMessageInput = dialog.findViewById(R.id.et_message_input);
-        ImageView ivSendMessage = dialog.findViewById(R.id.iv_send_message);
-
-        // Tìm user sở hữu ảnh (dựa trên currentPhoto.getUserId())
-        String photoOwnerLastname = "Người dùng";
-        String receiverId = currentPhoto.getUserId();
-        for (User user : allUsers) {
-            if (user.getUid().equals(currentPhoto.getUserId())) {
-                photoOwnerLastname = user.getLastname() != null && !user.getLastname().isEmpty()
-                        ? user.getLastname()
-                        : user.getUsername() != null && !user.getUsername().isEmpty()
-                        ? user.getUsername()
-                        : "Người dùng";
-                break;
-            }
-        }
-
-        // Đặt hint động: "Trả lời + Lastname"
-        etMessageInput.setHint("Trả lời " + photoOwnerLastname + "...");
-
-        etMessageInput.requestFocus();
-
-        // Theo dõi sự thay đổi trong EditText và đổi background của ImageView
-        etMessageInput.addTextChangedListener(new android.text.TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().trim().isEmpty()) {
-                    ivSendMessage.setBackgroundResource(R.drawable.circle_background);
-                } else {
-                    ivSendMessage.setBackgroundResource(R.drawable.circle_background_yellow);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(android.text.Editable s) {}
-        });
-
-        // Khởi tạo MessageViewModel
-        MessageViewModel messageViewModel = new ViewModelProvider(this).get(MessageViewModel.class);
-
-        // Quan sát kết quả gửi tin nhắn
-        messageViewModel.getSendMessageSuccess().observe(this, success -> {
-            if (success != null && success) {
-                Toast.makeText(this, "Tin nhắn đã gửi!", Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-            }
-        });
-
-        messageViewModel.getSendMessageError().observe(this, error -> {
-            if (error != null) {
-                Toast.makeText(this, "Lỗi khi gửi tin nhắn: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        ivSendMessage.setOnClickListener(v -> {
-            String messageContent = etMessageInput.getText().toString().trim();
-            if (!messageContent.isEmpty()) {
-                // Tạo tin nhắn
-                Message message = new Message(
-                        currentUserId, // Người gửi
-                        receiverId, // Người nhận (chủ của ảnh)
-                        messageContent, // Nội dung tin nhắn
-                        currentPhoto.getPhotoId() // ID của ảnh
-                );
-
-                // Gửi tin nhắn qua ViewModel
-                messageViewModel.sendMessage(message);
-            } else {
-                Toast.makeText(this, "Vui lòng nhập tin nhắn!", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        dialog.show();
-    }
-    private void showReactionDetailsDialog() {
-        // Tạo dialog
-        Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.dialog_reaction_details);
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-
-        // Cho phép đóng dialog khi bấm ra ngoài
-        dialog.setCanceledOnTouchOutside(true);
-
-        // Thiết lập dialog full chiều ngang và dính vào cạnh dưới
-        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-        params.width = WindowManager.LayoutParams.MATCH_PARENT; // Full chiều ngang
-        params.height = WindowManager.LayoutParams.WRAP_CONTENT; // Chiều cao tự động
-        params.gravity = Gravity.BOTTOM; // Dính vào cạnh dưới
-        dialog.getWindow().setAttributes(params);
-
-        // Ánh xạ view
-        RecyclerView rvReactionList = dialog.findViewById(R.id.rv_reaction_list);
-
-        // Thiết lập RecyclerView
-        rvReactionList.setLayoutManager(new LinearLayoutManager(this));
-        ReactionAdapter adapter = new ReactionAdapter(this, currentReactions, allUsers);
-        rvReactionList.setAdapter(adapter);
-
-        // Hiển thị dialog
-        dialog.show();
-    }
-    private void updatePhotoFeedAndScroll(List<User> users, List<Photo> photos, String targetPhotoId) {
+    private void updatePhotoFeedAndScroll(List<User> users, List<Photo> photos, String targetPhotoId, boolean isPremium) {
         if (photos != null && !photos.isEmpty()) {
             photoList.clear();
-            photoList.addAll(photos);
+            if (!isPremium) {
+                // Chèn quảng cáo sau mỗi 3 ảnh
+                int photoCount = 0;
+                for (int i = 0; i < photos.size(); i++) {
+                    photoList.add(photos.get(i));
+                    photoCount++;
+                    if (photoCount == 3 && i < photos.size() - 1) {
+                        photoList.add(new Photo(AD_IMAGE_URL));
+                        photoCount = 0; // Reset đếm
+                    }
+                }
+            } else {
+                // Không chèn quảng cáo cho premium
+                photoList.addAll(photos);
+            }
 
             DetailPhotoFriendAdapter adapter = new DetailPhotoFriendAdapter(
                     FeedPhotoFriendActivity.this,
@@ -525,8 +432,22 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
 
     private void updatePhotoFeedBySender(List<Photo> photos) {
         if (photos == null || allUsers.isEmpty()) return;
+        boolean isPremium = userViewModel.getCurrentUser().getValue().isPremium();
         photoList.clear();
-        photoList.addAll(photos);
+        if (!isPremium) {
+            // Chèn quảng cáo sau mỗi 3 ảnh
+            int photoCount = 0;
+            for (int i = 0; i < photos.size(); i++) {
+                photoList.add(photos.get(i));
+                photoCount++;
+                if (photoCount == 3 && i < photos.size() - 1) {
+                    photoList.add(new Photo(AD_IMAGE_URL));
+                    photoCount = 0;
+                }
+            }
+        } else {
+            photoList.addAll(photos);
+        }
         DetailPhotoFriendAdapter adapter = new DetailPhotoFriendAdapter(
                 FeedPhotoFriendActivity.this,
                 photoList,
@@ -540,10 +461,18 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
             updateUIBasedOnPhotoOwner();
         }
     }
+
     private void updateUIBasedOnPhotoOwner() {
         if (currentPhoto == null || currentUserId == null) {
             Log.w("FeedPhotoFriendActivity", "currentPhoto or currentUserId is null");
             messageInputContainer.setVisibility(View.VISIBLE);
+            reactionInfoContainer.setVisibility(View.GONE);
+            return;
+        }
+
+        if (currentPhoto.isAd()) {
+            // Ẩn các thành phần giao diện khi hiển thị quảng cáo
+            messageInputContainer.setVisibility(View.GONE);
             reactionInfoContainer.setVisibility(View.GONE);
             return;
         }
@@ -560,6 +489,117 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
             reactionInfoContainer.setVisibility(View.GONE);
         }
     }
+
+    private void showMessageInputDialog() {
+        if (currentPhoto == null || currentPhoto.isAd()) return; // Không cho phép gửi tin nhắn khi là quảng cáo
+
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_message_input);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        dialog.setCanceledOnTouchOutside(true);
+
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        params.width = WindowManager.LayoutParams.MATCH_PARENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.gravity = Gravity.BOTTOM;
+        dialog.getWindow().setAttributes(params);
+
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        EditText etMessageInput = dialog.findViewById(R.id.et_message_input);
+        ImageView ivSendMessage = dialog.findViewById(R.id.iv_send_message);
+
+        String photoOwnerLastname = "Người dùng";
+        String receiverId = currentPhoto.getUserId();
+        for (User user : allUsers) {
+            if (user.getUid().equals(currentPhoto.getUserId())) {
+                photoOwnerLastname = user.getLastname() != null && !user.getLastname().isEmpty()
+                        ? user.getLastname()
+                        : user.getUsername() != null && !user.getUsername().isEmpty()
+                        ? user.getUsername()
+                        : "Người dùng";
+                break;
+            }
+        }
+
+        etMessageInput.setHint("Trả lời " + photoOwnerLastname + "...");
+
+        etMessageInput.requestFocus();
+
+        etMessageInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().trim().isEmpty()) {
+                    ivSendMessage.setBackgroundResource(R.drawable.circle_background);
+                } else {
+                    ivSendMessage.setBackgroundResource(R.drawable.circle_background_yellow);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        MessageViewModel messageViewModel = new ViewModelProvider(FeedPhotoFriendActivity.this).get(MessageViewModel.class);
+
+        messageViewModel.getSendMessageSuccess().observe(this, success -> {
+            if (success != null && success) {
+                Toast.makeText(this, "Tin nhắn đã gửi!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+
+        messageViewModel.getSendMessageError().observe(this, error -> {
+            if (error != null) {
+                Toast.makeText(this, "Lỗi khi gửi tin nhắn: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        ivSendMessage.setOnClickListener(v -> {
+            String messageContent = etMessageInput.getText().toString().trim();
+            if (!messageContent.isEmpty()) {
+                Message message = new Message(
+                        currentUserId,
+                        receiverId,
+                        messageContent,
+                        currentPhoto.getPhotoId()
+                );
+
+                messageViewModel.sendMessage(message);
+            } else {
+                Toast.makeText(this, "Vui lòng nhập tin nhắn!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void showReactionDetailsDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_reaction_details);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        dialog.setCanceledOnTouchOutside(true);
+
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        params.width = WindowManager.LayoutParams.MATCH_PARENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.gravity = Gravity.BOTTOM;
+        dialog.getWindow().setAttributes(params);
+
+        RecyclerView rvReactionList = dialog.findViewById(R.id.rv_reaction_list);
+
+        rvReactionList.setLayoutManager(new LinearLayoutManager(this));
+        ReactionAdapter adapter = new ReactionAdapter(this, currentReactions, allUsers);
+        rvReactionList.setAdapter(adapter);
+
+        dialog.show();
+    }
+
     private void saveBitmapToGallery(Bitmap bitmap) {
         String filename = "Locket_" + System.currentTimeMillis() + ".jpg";
         File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
