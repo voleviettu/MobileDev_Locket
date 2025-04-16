@@ -1,13 +1,19 @@
 package com.example.locket.ui.photo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
@@ -22,7 +28,8 @@ import com.example.locket.viewmodel.PhotoReactionViewModel;
 import com.example.locket.viewmodel.PhotoViewModel;
 import com.example.locket.viewmodel.UserViewModel;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DetailPhotoFriendAdapter extends RecyclerView.Adapter<DetailPhotoFriendAdapter.PhotoViewHolder> {
@@ -89,8 +96,6 @@ public class DetailPhotoFriendAdapter extends RecyclerView.Adapter<DetailPhotoFr
 
             infoText = itemView.findViewById(R.id.photo_caption_or_location);
             songButton = itemView.findViewById(R.id.photo_song_button);
-            infoText.setVisibility(View.GONE);
-            songButton.setVisibility(View.GONE);
             musicContainer = itemView.findViewById(R.id.music_progress_container);
             musicProgress = itemView.findViewById(R.id.music_progress);
             playPauseButton = itemView.findViewById(R.id.play_pause_button);
@@ -99,32 +104,68 @@ public class DetailPhotoFriendAdapter extends RecyclerView.Adapter<DetailPhotoFr
         void bind(Photo photoObj) {
             this.currentPhoto = photoObj;
 
-            Glide.with(context)
-                    .load(photoObj.getImageUrl())
-                    .into(photo);
+            if (photoObj.isAd()) {
+                // Hiển thị quảng cáo
+                Glide.with(context)
+                        .load(Integer.parseInt(photoObj.getImageUrl())) // Cho drawable
+                        // .load(photoObj.getImageUrl()) // Nếu dùng URL
+                        .error(R.drawable.ic_profile) // Ảnh dự phòng
+                        .into(photo);
 
-            for (User u : allUsers) {
-                if (u.getUid().equals(photoObj.getUserId())) {
-                    userName.setText(u.getUsername());
-                    Glide.with(context).load(u.getAvatar()).circleCrop().into(userAvatar);
-                    break;
+                // Ẩn các thành phần không liên quan
+                userAvatar.setVisibility(View.GONE);
+                userName.setVisibility(View.GONE);
+                postTime.setVisibility(View.GONE);
+                infoText.setVisibility(View.GONE);
+                songButton.setVisibility(View.GONE);
+                musicContainer.setVisibility(View.GONE);
+
+                // (Tùy chọn) Thêm sự kiện nhấp để mở liên kết quảng cáo
+                photo.setOnClickListener(v -> {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://your-ad-url.com"));
+                    context.startActivity(intent);
+                });
+
+                // Dừng nhạc nếu đang phát
+                stopMusic();
+            } else {
+                // Hiển thị ảnh bạn bè
+                Glide.with(context)
+                        .load(photoObj.getImageUrl())
+                        .error(R.drawable.ic_profile)
+                        .into(photo);
+
+                // Hiển thị thông tin người dùng
+                userAvatar.setVisibility(View.VISIBLE);
+                userName.setVisibility(View.VISIBLE);
+                postTime.setVisibility(View.VISIBLE);
+
+                for (User u : allUsers) {
+                    if (u.getUid().equals(photoObj.getUserId())) {
+                        userName.setText(u.getUsername());
+                        Glide.with(context).load(u.getAvatar()).circleCrop().into(userAvatar);
+                        break;
+                    }
                 }
-            }
-            postTime.setText(formatTimeDifference(photoObj.getCreatedAt()));
+                postTime.setText(formatTimeDifference(photoObj.getCreatedAt()));
 
-            infoText.setVisibility(View.GONE);
-            songButton.setVisibility(View.GONE);
-            musicContainer.setVisibility(View.GONE);
+                infoText.setVisibility(View.GONE);
+                songButton.setVisibility(View.GONE);
+                musicContainer.setVisibility(View.GONE);
 
-            if (photoObj.getCaption() != null && !photoObj.getCaption().isEmpty()) {
-                infoText.setText(photoObj.getCaption());
-                infoText.setVisibility(View.VISIBLE);
-            } else if (photoObj.getLocation() != null && !photoObj.getLocation().isEmpty()) {
-                infoText.setText("\uD83C\uDF0D " + photoObj.getLocation());
-                infoText.setVisibility(View.VISIBLE);
-            } else if (photoObj.getMusicUrl() != null && !photoObj.getMusicUrl().isEmpty()) {
-                songButton.setVisibility(View.VISIBLE);
-                songButton.setOnClickListener(v -> playMusicWithProgress(photoObj.getMusicUrl()));
+                if (photoObj.getCaption() != null && !photoObj.getCaption().isEmpty()) {
+                    infoText.setText(photoObj.getCaption());
+                    infoText.setVisibility(View.VISIBLE);
+                } else if (photoObj.getLocation() != null && !photoObj.getLocation().isEmpty()) {
+                    infoText.setText("\uD83C\uDF0D " + photoObj.getLocation());
+                    infoText.setVisibility(View.VISIBLE);
+                } else if (photoObj.getMusicUrl() != null && !photoObj.getMusicUrl().isEmpty()) {
+                    songButton.setVisibility(View.VISIBLE);
+                    songButton.setOnClickListener(v -> playMusicWithProgress(photoObj.getMusicUrl()));
+                }
+
+                // Xóa sự kiện nhấp chuột cho ảnh bạn bè
+                photo.setOnClickListener(null);
             }
         }
 
@@ -149,9 +190,7 @@ public class DetailPhotoFriendAdapter extends RecyclerView.Adapter<DetailPhotoFr
         }
 
         private void playMusicWithProgress(String url) {
-            if (mediaPlayer != null) {
-                mediaPlayer.release();
-            }
+            stopMusic(); // Dừng nhạc trước đó nếu có
 
             try {
                 if (url.startsWith("http://")) {
@@ -196,6 +235,20 @@ public class DetailPhotoFriendAdapter extends RecyclerView.Adapter<DetailPhotoFr
             }
         }
 
+        private void stopMusic() {
+            if (mediaPlayer != null) {
+                if (isPlaying) {
+                    mediaPlayer.stop();
+                    isPlaying = false;
+                }
+                mediaPlayer.release();
+                mediaPlayer = null;
+            }
+            handler.removeCallbacks(updateProgressRunnable);
+            musicContainer.setVisibility(View.GONE);
+            playPauseButton.setImageResource(R.drawable.ic_play);
+        }
+
         private final Runnable updateProgressRunnable = new Runnable() {
             @Override
             public void run() {
@@ -212,6 +265,5 @@ public class DetailPhotoFriendAdapter extends RecyclerView.Adapter<DetailPhotoFr
         private void startProgressUpdate() {
             handler.post(updateProgressRunnable);
         }
-
     }
 }
