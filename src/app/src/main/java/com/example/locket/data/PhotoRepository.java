@@ -4,17 +4,29 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.example.locket.model.Photo;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 public class PhotoRepository {
     private static final String TAG = "PhotoRepository";
     private static final String COLLECTION_NAME = "photos";
+    private final String USER_ID_FIELD = "userId"; // Tên trường user ID trong document ảnh
+    private final String CREATED_AT_FIELD = "createdAt";
+
+    private static final int FIRESTORE_WHERE_IN_LIMIT = 30;
     private final FirebaseFirestore db;
 
     public PhotoRepository() {
@@ -117,6 +129,70 @@ public class PhotoRepository {
                     Log.e(TAG, "Lỗi khi lấy ảnh: " + e.getMessage());
                     callback.onFailure(e);
                 });
+    }
+    @NonNull
+    public List<Photo> getPhotosByIdsBlocking(List<String> photoIds) throws ExecutionException, InterruptedException {
+        List<Photo> photos = new ArrayList<>();
+        if (photoIds == null || photoIds.isEmpty()) {
+            return photos; // Trả về list rỗng nếu không có ID nào
+        }
+
+        // Chia photoIds thành các batch nhỏ hơn để tránh giới hạn của Firestore 'in' query
+        for (int i = 0; i < photoIds.size(); i += FIRESTORE_WHERE_IN_LIMIT) {
+            int end = Math.min(i + FIRESTORE_WHERE_IN_LIMIT, photoIds.size());
+            List<String> batchIds = photoIds.subList(i, end);
+
+            if (batchIds.isEmpty()) continue; // Bỏ qua batch rỗng (dù không nên xảy ra)
+
+            // Truy vấn batch hiện tại
+            Task<QuerySnapshot> task = db.collection(COLLECTION_NAME)
+                    .whereIn(FieldPath.documentId(), batchIds) // Lấy các document có ID trong batch
+                    .get();
+
+            QuerySnapshot snapshot = Tasks.await(task); // Chờ kết quả
+
+            if (snapshot != null && !snapshot.isEmpty()) {
+                for (DocumentSnapshot document : snapshot.getDocuments()) {
+                    Photo photo = document.toObject(Photo.class);
+                    if (photo != null) {
+                        // Quan trọng: Gán ID từ document vào object Photo nếu model không tự làm
+                        // photo.setPhotoId(document.getId()); // Bỏ comment nếu cần
+                        photos.add(photo);
+                    }
+                }
+            }
+        }
+        return photos;
+    }
+
+    /**
+     * Lấy danh sách các object Photo được đăng bởi một user cụ thể, sắp xếp theo thời gian mới nhất.
+     * Chỉ gọi từ background thread.
+     * @param userId ID của người đăng ảnh.
+     * @return Danh sách object Photo đã sắp xếp (luôn non-null, có thể rỗng).
+     * @throws ExecutionException Nếu task Firebase thất bại.
+     * @throws InterruptedException Nếu thread bị gián đoạn khi đang chờ.
+     */
+    @NonNull
+    public List<Photo> getPhotosByUserBlocking(String userId) throws ExecutionException, InterruptedException {
+        List<Photo> photos = new ArrayList<>();
+        Task<QuerySnapshot> task = db.collection(COLLECTION_NAME)
+                .whereEqualTo(USER_ID_FIELD, userId) // Lọc theo user ID
+                .orderBy(CREATED_AT_FIELD, Query.Direction.DESCENDING) // Sắp xếp mới nhất trước
+                .get();
+
+        QuerySnapshot snapshot = Tasks.await(task); // Chờ kết quả
+
+        if (snapshot != null && !snapshot.isEmpty()) {
+            for (DocumentSnapshot document : snapshot.getDocuments()) {
+                Photo photo = document.toObject(Photo.class);
+                if (photo != null) {
+                    // photo.setPhotoId(document.getId()); // Bỏ comment nếu cần
+                    photos.add(photo);
+                }
+            }
+        }
+        return photos; // Danh sách đã được Firestore sắp xếp
     }
 
     public interface FirestoreCallback<T> {

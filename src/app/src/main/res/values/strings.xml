@@ -18,5 +18,6 @@
     <string name="username_hint">Username</string>
     <string name="password_title_2">Điền mật khẩu của bạn</string>
     <string name="forgot_password">Bạn đã quên mật khẩu?</string>
+    <string name="widget_config">Chọn bạn bè để hiển thị trên Widget:</string>
 
 </resources>

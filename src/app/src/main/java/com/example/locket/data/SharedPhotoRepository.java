@@ -1,18 +1,31 @@
 package com.example.locket.data;
 
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import com.example.locket.model.SharedPhoto;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class SharedPhotoRepository {
     private static final String TAG = "SharedPhotoRepository";
     private static final String COLLECTION_NAME = "shared_photos";
+    private final String RECEIVER_ID_FIELD = "receiverId";
+    private final String SENDER_ID_FIELD = "senderId";
+    private final String PHOTO_ID_FIELD = "photoId"; // Trường chứa ID của ảnh được chia sẻ
+    private final String CREATED_AT_FIELD = "createdAt"; // Trường timestamp của lượt chia sẻ
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     public void sharePhotoToUser(String photoId, String senderId, String receiverId) {
@@ -172,5 +185,57 @@ public class SharedPhotoRepository {
                     callback.onSuccess(photosBySender);
                 })
                 .addOnFailureListener(callback::onFailure);
+    }
+
+    @NonNull
+    public List<String> getSharedPhotoIdsBlocking(String userId) throws ExecutionException, InterruptedException {
+        List<String> photoIds = new ArrayList<>();
+        // Truy vấn collection shared_photos, lọc theo receiverId và sắp xếp
+        Task<QuerySnapshot> task = db.collection(COLLECTION_NAME)
+                .whereEqualTo(RECEIVER_ID_FIELD, userId) // Lọc theo người nhận
+                .orderBy(CREATED_AT_FIELD, Query.Direction.DESCENDING) // Sắp xếp mới nhất trước
+                .get();
+
+        QuerySnapshot snapshot = Tasks.await(task); // Chờ kết quả
+
+        if (snapshot != null && !snapshot.isEmpty()) {
+            for (DocumentSnapshot document : snapshot.getDocuments()) {
+                // Lấy giá trị từ trường photoId
+                String photoId = document.getString(PHOTO_ID_FIELD);
+                if (photoId != null && !photoId.isEmpty()) {
+                    photoIds.add(photoId);
+                } else {
+                    // Log hoặc xử lý trường hợp photoId bị thiếu trong document chia sẻ
+                    System.err.println("Warning: Missing photoId in shared_photos document: " + document.getId());
+                }
+            }
+        }
+        return photoIds; // Danh sách đã được sắp xếp theo thời gian chia sẻ
+    }
+
+    @NonNull
+    public List<String> getPhotosSharedByFriendBlocking(String friendId, String myId) throws ExecutionException, InterruptedException {
+        List<String> photoIds = new ArrayList<>();
+
+        Task<QuerySnapshot> task = db.collection(COLLECTION_NAME)
+                .whereEqualTo(RECEIVER_ID_FIELD, myId)      // Lọc theo người nhận
+                .whereEqualTo(SENDER_ID_FIELD, friendId)   // Lọc theo người gửi
+                .orderBy(CREATED_AT_FIELD, Query.Direction.DESCENDING) // Sắp xếp mới nhất trước
+                .get();
+
+        QuerySnapshot snapshot = Tasks.await(task); // Chờ kết quả
+
+        if (snapshot != null && !snapshot.isEmpty()) {
+            for (DocumentSnapshot document : snapshot.getDocuments()) {
+                // Lấy giá trị từ trường photoId
+                String photoId = document.getString(PHOTO_ID_FIELD);
+                if (photoId != null && !photoId.isEmpty()) {
+                    photoIds.add(photoId);
+                } else {
+                    System.err.println("Warning: Missing photoId in shared_photos document: " + document.getId());
+                }
+            }
+        }
+        return photoIds; // Danh sách đã được sắp xếp theo thời gian chia sẻ
     }
 }

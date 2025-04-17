@@ -2,13 +2,17 @@ package com.example.locket.data;
 
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.example.locket.model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class UserRepository {
     private static final String TAG = "UserRepository";
@@ -90,6 +94,44 @@ public class UserRepository {
                     }
                 })
                 .addOnFailureListener(callback::onFailure);
+    }
+
+    @Nullable
+    public User getUserByIdBlocking(String userId) throws ExecutionException, InterruptedException {
+        Task<DocumentSnapshot> task = db.collection(COLLECTION_NAME).document(userId).get();
+        // Block thread hiện tại và chờ kết quả
+        DocumentSnapshot snapshot = Tasks.await(task);
+        if (snapshot != null && snapshot.exists()) {
+            User user = snapshot.toObject(User.class);
+            // Quan trọng: Gán UID từ document ID nếu model User không tự làm
+            // if (user != null) { user.setUid(snapshot.getId()); }
+            return user;
+        }
+        return null; // Không tìm thấy hoặc lỗi
+    }
+
+    /**
+     * Lấy tất cả Users một cách đồng bộ.
+     * Chú ý: Chỉ gọi từ background thread.
+     * Ném ra Exception nếu task thất bại hoặc bị gián đoạn.
+     */
+    @NonNull
+    public List<User> getAllUsersBlocking() throws ExecutionException, InterruptedException {
+        Task<QuerySnapshot> task = db.collection(COLLECTION_NAME).get();
+        // Block thread hiện tại và chờ kết quả
+        QuerySnapshot snapshot = Tasks.await(task);
+        List<User> users = new ArrayList<>();
+        if (snapshot != null) {
+            for (DocumentSnapshot document : snapshot.getDocuments()) {
+                User user = document.toObject(User.class);
+                if (user != null) {
+                    // Quan trọng: Gán UID nếu cần
+                    // user.setUid(document.getId());
+                    users.add(user);
+                }
+            }
+        }
+        return users;
     }
 
     public interface FirestoreCallback<T> {
