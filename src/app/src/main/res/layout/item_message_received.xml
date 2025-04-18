@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/message_received_background"
             android:padding="12dp"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:textSize="24sp"
             android:maxWidth="280dp" />
 
