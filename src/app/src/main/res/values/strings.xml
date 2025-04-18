@@ -6,7 +6,7 @@
     <string name="signup">Đăng ký</string>
     <string name="signin">Đăng nhập</string>
     <string name="terms_and_conditions">Bằng cách nhấn vào nút Tiếp tục, bạn đồng ý với chúng tôi\nĐiều khoản dịch vụ và Chính sách quyền riêng tư</string>
-    <string name="back_button_description">Back</string>
+    <string name="back_button_description">Trờ về</string>
     <string name="password_title">Chọn một mật khẩu</string>
     <string name="password_hint">Mật khẩu</string>
     <string name="password_requirement">Mật khẩu phải có ít nhất 8 ký tự</string>
@@ -19,5 +19,99 @@
     <string name="password_title_2">Điền mật khẩu của bạn</string>
     <string name="forgot_password">Bạn đã quên mật khẩu?</string>
     <string name="widget_config">Chọn bạn bè để hiển thị trên Widget:</string>
+    <string name="reaction_info">Hoạt động</string>
+    <string name="no_reactions">Chưa có hoạt động nào!</string>
+    <string name="please_enter_message">Vui lòng nhập tin nhắn!</string>
+    <string name="photo_delete_error">Lỗi khi xoá ảnh: %1$s</string>
+    <string name="no_friends">Không có bạn bè nào</string>
 
+<!--    SettingsActivity-->
+    <string name="select_language">Chọn ngôn ngữ</string>
+    <string name="vietnamese">Tiếng Việt</string>
+    <string name="english">Tiếng Anh</string>
+    <string name="change_icon">Đổi icon ứng dụng</string>
+    <string name="notifications">Thông báo</string>
+    <string name="privacy">Quyền riêng tư</string>
+    <string name="about">Giới thiệu</string>
+    <string name="user_load_error">Không thể tải thông tin người dùng</string>
+    <string name="user_not_loaded">Chưa load thông tin user, vui lòng thử lại</string>
+    <string name="change_language">Đổi ngôn ngữ</string>
+    <string name="settings_title">Cài đặt</string>
+
+    <!-- ProfileActivity -->
+    <string name="get_locket_gold">Nâng cấp Locket Gold</string>
+    <string name="edit_profile">Chỉnh sửa hồ sơ</string>
+
+    <!--PhotoActivity-->
+    <string name="history">Lịch sử</string>
+    <string name="friend_count">%d Bạn bè</string>
+
+    <!-- FullPhotoActivity -->
+    <string name="all_friends">Tất cả bạn bè</string>
+    <string name="self">Bạn</string>
+
+    <!-- FeedPhotoFriendActivity -->
+    <string name="hint_send_message">Gửi tin nhắn...</string>
+    <string name="photo_saved">Ảnh đã được lưu!</string>
+    <string name="photo_load_failed">Lỗi khi tải ảnh!</string>
+    <string name="photo_save_failed">Lỗi khi lưu ảnh!</string>
+    <string name="photo_delete_failed_missing_info">Không thể xoá ảnh (thiếu thông tin)</string>
+    <string name="photo_deleted">Đã xoá ảnh!</string>
+    <string name="photo_delete_failed">Lỗi khi xoá ảnh: %s</string>
+    <string name="activity">Hoạt động</string>
+    <string name="no_activity">Chưa có hoạt động nào!</string>
+    <string name="reply_to">Trả lời %s...</string>
+    <string name="save_photo">Lưu</string>
+    <string name="delete_photo">Xoá</string>
+
+    <!-- DetailPhotoActivity -->
+    <string name="send_to">Gửi đến...</string>
+    <string name="all">Tất cả</string>
+    <string name="option_add_message">Thêm một tin nhắn</string>
+    <string name="option_add_music">Thêm nhạc</string>
+    <string name="option_add_location">Thêm vị trí</string>
+    <string name="select_music">Chọn bài nhạc</string>
+    <string name="music_selected">🎵 Nhạc đã chọn</string>
+
+    <!-- FullChatActivity -->
+    <string name="message">Tin nhắn</string>
+    <string name="no_messages">Chưa có câu trả lời nào!</string>
+    <string name="time_just_now">Vừa xong</string>
+    <string name="time_minutes">%1$d phút</string>
+    <string name="time_hours">%1$d giờ</string>
+    <string name="time_days">%1$d ngày</string>
+
+    <!-- EditNameActivity -->
+    <string name="edit_your_name">Chỉnh sửa tên bạn</string>
+
+    <!-- UploadImageActivity -->
+    <string name="locket_gold_title">Locket Gold</string>
+    <string name="locket_gold_subtitle">Nâng cấp lên Locket Gold để trải nghiệm!!</string>
+    <string name="feature_remove_ads_title">Xoá quảng cáo</string>
+    <string name="feature_remove_ads_description">Không bao giờ thấy quảng cáo trong Lịch sử!</string>
+    <string name="feature_video_lockets_title">Video Lockets</string>
+    <string name="feature_video_lockets_description">Quay các đoạn video ngắn</string>
+    <string name="feature_custom_icon_title">Biểu tượng ứng dụng tùy chỉnh</string>
+    <string name="feature_custom_icon_description">Trang trí màn hình chính của bạn</string>
+    <string name="feature_upload_photo_title">Tải ảnh lên từ thư viện</string>
+    <string name="feature_upload_photo_description">Chia sẻ kỷ niệm từ thư viện của bạn</string>
+    <string name="feature_longer_caption_title">Gửi chú thích dài hơn</string>
+    <string name="feature_longer_caption_description">Viết nhiều hơn trên ảnh của bạn!</string>
+    <string name="upgrade_button">Nâng cấp Locket Gold</string>
+    <string name="no_thanks">Lần sau nhé, cảm ơn</string>
+
+    <!-- Welcome Activity   -->
+    <string name="locket_subtitle">Ảnh trực tiếp từ bạn bè, ngay trên màn hình chính</string>
+    <string name="register_button">Tạo một tài khoản</string>
+    <string name="login_button">Đăng nhập</string>
+
+    <!-- FriendList -->
+    <string name="friend_requests_description">Lời mời kết bạn</string>
+    <string name="your_friends_description">Bạn bè của bạn</string>
+    <string name="friend_count_format">%d trong số 20 bạn bè</string>
+    <string name="invite_prompt">Gửi lời mời cho bạn mới</string>
+    <string name="friend_requests_label">Lời mời kết bạn</string>
+    <string name="your_friends_label">Bạn bè của bạn</string>
+    <string name="search_friend_hint">Tìm kiếm theo tên</string>
+    <string name="cancel_search">Hủy</string>
 </resources>

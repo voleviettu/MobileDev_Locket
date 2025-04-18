@@ -45,7 +45,7 @@ public class FriendDialog extends DialogFragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         List<User> friendListWithAll = new ArrayList<>();
-        friendListWithAll.add(new User("0", null, null, null, "Tất cả bạn bè", "ic_friends", false));
+        friendListWithAll.add(new User("0", null, null, null, getString(R.string.all_friends), "ic_friends", false));
         friendListWithAll.addAll(allFriends);
 
         FriendPopupAdapter adapter = new FriendPopupAdapter(friendListWithAll, friend -> {

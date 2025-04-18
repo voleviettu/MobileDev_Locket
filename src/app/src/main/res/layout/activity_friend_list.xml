@@ -19,13 +19,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="@color/white"
-        android:contentDescription="Back button" />
+        android:contentDescription="@string/back_button_description" />
 
     <TextView
         android:id="@+id/textViewFriendCount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="0 out of 20 friends"
+        android:text="@string/friend_count_format"
         android:textColor="@android:color/white"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -38,7 +38,7 @@
         android:id="@+id/textViewInvitePrompt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Gửi lời mời cho bạn mới"
+        android:text="@string/invite_prompt"
         android:textColor="#AEAEB2"
         android:textSize="16sp"
         android:layout_marginTop="4dp"
@@ -61,7 +61,7 @@
             android:id="@+id/editTextSearchFriend"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Tìm kiếm theo tên"
+            android:hint="@string/search_friend_hint"
             android:textColorHint="#AEAEB2"
             android:textColor="@android:color/white"
             android:background="@drawable/search_bar_background"
@@ -92,7 +92,7 @@
             android:id="@+id/buttonCancelSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hủy"
+            android:text="@string/cancel_search"
             android:textColor="@color/white"
             android:textSize="16sp"
             android:paddingStart="8dp"
@@ -135,13 +135,13 @@
             android:layout_height="24dp"
             android:src="@drawable/ic_person_add"
             app:tint="#AEAEB2"
-            android:contentDescription="Friend Requests" />
+            android:contentDescription="@string/friend_requests_description" />
 
         <TextView
             android:id="@+id/textViewFriendRequestsLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lời mời kết bạn"
+            android:text="@string/friend_requests_label"
             android:textColor="#AEAEB2"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -180,13 +180,13 @@
             android:layout_height="24dp"
             android:src="@drawable/ic_friends"
             app:tint="#AEAEB2"
-            android:contentDescription="Your Friends" />
+            android:contentDescription="@string/your_friends_description" />
 
         <TextView
             android:id="@+id/textViewYourFriendsLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Bạn bè của bạn"
+            android:text="@string/your_friends_label"
             android:textColor="#AEAEB2"
             android:textSize="18sp"
             android:textStyle="bold"

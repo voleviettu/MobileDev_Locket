@@ -14,7 +14,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.view.PreviewView;
 import androidx.camera.core.Preview;
 import androidx.camera.core.Camera;
@@ -26,6 +25,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
+import com.example.locket.BaseActivity;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.model.Photo;
@@ -49,7 +49,7 @@ import com.example.locket.viewmodel.UserViewModel;
 import com.example.locket.viewmodel.FriendViewModel;
 import com.example.locket.model.User;
 
-public class PhotoActivity extends AppCompatActivity {
+public class PhotoActivity extends BaseActivity {
     private UserViewModel userViewModel;
 
     private SharedPhotoViewModel sharedPhotoViewModel;
@@ -109,7 +109,7 @@ public class PhotoActivity extends AppCompatActivity {
                 friendViewModel.getFriends().observe(this, friends -> {
                     int friendCount = friends != null ? friends.size() : 0;
                     TextView numFriendsTextView = findViewById(R.id.num_friends);
-                    numFriendsTextView.setText(friendCount + " Bạn bè");
+                    numFriendsTextView.setText(getString(R.string.friend_count, friendCount));
                 });
                 Log.d("PhotoActivity", "User hiện tại: " + currentUser.getUsername());
             } else {

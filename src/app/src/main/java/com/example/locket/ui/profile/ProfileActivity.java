@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 
+import com.example.locket.BaseActivity;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.data.CloudinaryUploader;
@@ -34,7 +35,7 @@ import com.google.firebase.auth.FirebaseUser;
 import java.io.InputStream;
 import java.util.concurrent.Executors;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends BaseActivity {
 
     private static final String TAG = "ProfileActivity";
 

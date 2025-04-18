@@ -18,13 +18,13 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:src="@drawable/ic_heart_gold"
-            android:contentDescription="Locket Gold Icon" />
+            android:contentDescription="@string/locket_gold_title" />
 
         <!-- Title -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Locket Gold"
+            android:text="@string/locket_gold_title"
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -34,7 +34,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nâng cấp lên Locket Gold để trải nghiệm!!"
+            android:text="@string/locket_gold_subtitle"
             android:textColor="#AAAAAA"
             android:textSize="14sp"
             android:layout_marginTop="4dp" />
@@ -75,7 +75,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Xoá quảng cáo"
+                            android:text="@string/feature_remove_ads_title"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -83,7 +83,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Không bao giờ thấy quảng cáo trong Lịch sử!"
+                            android:text="@string/feature_remove_ads_description"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -91,7 +91,7 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- Feature Item - Remove Ads -->
+            <!-- Feature Item - Video Lockets -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -120,7 +120,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Video Lockets"
+                            android:text="@string/feature_video_lockets_title"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -128,7 +128,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Quay các đoạn video ngắn"
+                            android:text="@string/feature_video_lockets_description"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -136,6 +136,7 @@
 
             </androidx.cardview.widget.CardView>
 
+            <!-- Feature Item - Custom Icon -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -164,7 +165,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Biểu tượng ứng dụng tùy chỉnh"
+                            android:text="@string/feature_custom_icon_title"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -172,7 +173,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Trang trí màn hình chính của bạn"
+                            android:text="@string/feature_custom_icon_description"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -180,6 +181,7 @@
 
             </androidx.cardview.widget.CardView>
 
+            <!-- Feature Item - Upload Photo -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -208,7 +210,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tải ảnh lên từ thư viện"
+                            android:text="@string/feature_upload_photo_title"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -216,13 +218,15 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Chia sẻ kỷ niệm từ thư viện của bạn"
+                            android:text="@string/feature_upload_photo_description"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
+
             </androidx.cardview.widget.CardView>
 
+            <!-- Feature Item - Longer Caption -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -251,7 +255,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Gửi chú thích dài hơn"
+                            android:text="@string/feature_longer_caption_title"
                             android:textColor="@android:color/white"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -259,7 +263,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Viết nhiều hơn trên ảnh của bạn!"
+                            android:text="@string/feature_longer_caption_description"
                             android:textColor="#AAAAAA"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -281,7 +285,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nâng cấp Locket Gold  "
+                android:text="@string/upgrade_button"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
                 android:textStyle="bold"/>
@@ -297,7 +301,7 @@
             android:id="@+id/text_no_tks"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lần sau nhé, cảm ơn"
+            android:text="@string/no_thanks"
             android:textColor="#AAAAAA"
             android:textSize="14sp"
             android:layout_marginTop="12dp"/>

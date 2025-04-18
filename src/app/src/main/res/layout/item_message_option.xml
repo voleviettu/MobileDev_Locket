@@ -8,7 +8,7 @@
         android:layout_width="280dp"
         android:layout_height="wrap_content"
         android:background="@drawable/button_oval"
-        android:hint="Thêm một tin nhắn"
+        android:hint="@string/option_add_message"
         android:maxLength="50"
         android:inputType="textMultiLine"
         android:maxLines="5"

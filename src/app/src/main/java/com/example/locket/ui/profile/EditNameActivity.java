@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer; // *** Thêm Observer ***
 
+import com.example.locket.BaseActivity;
 import com.example.locket.MyApplication; // *** Thêm MyApplication ***
 import com.example.locket.R;
 import com.example.locket.data.UserRepository; // *** Thêm UserRepository ***
@@ -25,7 +26,7 @@ import com.google.android.gms.tasks.Task; // *** Thêm Task ***
 import com.google.firebase.auth.FirebaseAuth; // *** Thêm FirebaseAuth ***
 import com.google.firebase.auth.FirebaseUser; // *** Thêm FirebaseUser ***
 
-public class EditNameActivity extends AppCompatActivity {
+public class EditNameActivity extends BaseActivity {
 
     private static final String TAG = "EditNameActivity"; 
 

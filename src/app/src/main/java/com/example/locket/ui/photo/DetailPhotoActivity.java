@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.SnapHelper;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.locket.BaseActivity;
 import com.example.locket.BuildConfig;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
@@ -56,7 +57,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class DetailPhotoActivity extends AppCompatActivity implements
+public class DetailPhotoActivity extends BaseActivity implements
         OptionsFragment.OnOptionSelectedListener {
 
     private UserViewModel userViewModel;
@@ -133,7 +134,7 @@ public class DetailPhotoActivity extends AppCompatActivity implements
             if (friends != null) {
                 friendsList.clear();
                 User allUser = new User();
-                allUser.setFirstname("Tất cả");
+                allUser.setFirstname(getString(R.string.all));
                 allUser.setAvatar(null);
                 friendsList.add(allUser);
                 friendsList.addAll(friends);

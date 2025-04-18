@@ -54,7 +54,6 @@
                 android:id="@+id/num_friends"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bạn bè"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"/>
@@ -160,7 +159,7 @@
             android:id="@+id/tv_history"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lịch sử"
+            android:text="@string/history"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@color/white"

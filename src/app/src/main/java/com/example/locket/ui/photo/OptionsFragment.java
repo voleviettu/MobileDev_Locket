@@ -19,7 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -52,8 +51,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import com.arthenica.ffmpegkit.FFmpegKit;
 
+import com.arthenica.ffmpegkit.FFmpegKit;
 
 public class OptionsFragment extends Fragment {
 
@@ -121,7 +120,11 @@ public class OptionsFragment extends Fragment {
         optionSongButton.setVisibility(View.GONE);
         optionLocationButton.setVisibility(View.GONE);
 
-        if (option.contains("tin nhắn")) {
+        String addMessage = getString(R.string.option_add_message);
+        String addMusic = getString(R.string.option_add_music);
+        String addLocation = getString(R.string.option_add_location);
+
+        if (option.equals(addMessage)) {
             messageInput.setVisibility(View.VISIBLE);
 
             messageInput.addTextChangedListener(new TextWatcher() {
@@ -132,7 +135,7 @@ public class OptionsFragment extends Fragment {
                 @Override public void afterTextChanged(Editable s) {}
             });
 
-        } else if (option.contains("nhạc")) {
+        } else if (option.contains(addMusic)) { // Dùng contains vì option có emoji
             optionSongButton.setVisibility(View.VISIBLE);
             optionSongButton.setText(option);
 
@@ -140,10 +143,10 @@ public class OptionsFragment extends Fragment {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("audio/*");
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(Intent.createChooser(intent, "Chọn bài nhạc"), REQUEST_CODE_PICK_MUSIC);
+                startActivityForResult(Intent.createChooser(intent, getString(R.string.select_music)), REQUEST_CODE_PICK_MUSIC);
             });
 
-        } else if (option.contains("vị trí")) {
+        } else if (option.contains(addLocation)) { // Dùng contains vì option có emoji
             optionLocationButton.setVisibility(View.VISIBLE);
             optionLocationButton.setText(option);
 
@@ -352,7 +355,6 @@ public class OptionsFragment extends Fragment {
         return outputFile.exists() ? outputPath : null;
     }
 
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -373,17 +375,10 @@ public class OptionsFragment extends Fragment {
 
                     requireActivity().runOnUiThread(() -> {
                         if (uploadedUrl != null) {
-                            Toast.makeText(getContext(), "Đã tải nhạc lên thành công 🎵", Toast.LENGTH_SHORT).show();
                             if (listener != null) listener.onMusicSelected(uploadedUrl);
-                            optionSongButton.setText("🎵 Nhạc đã chọn");
-                        } else {
-                            Toast.makeText(getContext(), "Tải nhạc lên thất bại", Toast.LENGTH_SHORT).show();
+                            optionSongButton.setText(getString(R.string.music_selected));
                         }
                     });
-                } else {
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Không thể cắt file nhạc", Toast.LENGTH_SHORT).show()
-                    );
                 }
             }).start();
         }
@@ -393,7 +388,7 @@ public class OptionsFragment extends Fragment {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (!option.contains("vị trí")) return;
+        if (!option.contains(getString(R.string.option_add_location))) return;
         if (requestCode == LOCATION_PERMISSION_CODE &&
                 grantResults.length > 0 &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -408,9 +403,7 @@ public class OptionsFragment extends Fragment {
     public void setMessageText(String text) {
         if (messageInput != null) {
             messageInput.setText(text);
-            if (listener != null) listener.onMessageEntered(text); // Gửi về activity luôn
+            if (listener != null) listener.onMessageEntered(text);
         }
     }
-
-
 }

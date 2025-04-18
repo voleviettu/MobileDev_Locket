@@ -20,6 +20,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.locket.BaseActivity;
 import com.example.locket.R;
 import com.example.locket.model.User;
 import com.example.locket.data.FriendRepository;
@@ -37,7 +38,7 @@ import com.example.locket.ui.friend.FriendAdapter;
 import com.example.locket.ui.friend.SearchResultAdapter;
 import com.example.locket.ui.friend.FriendRequestAdapter;
 
-public class FriendList extends AppCompatActivity {
+public class FriendList extends BaseActivity {
 
     private static final String TAG = "FriendListActivity";
 
@@ -202,7 +203,7 @@ public class FriendList extends AppCompatActivity {
     }
 
     private void updateFriendCount(int count) {
-        textViewFriendCount.setText(count + " trong số 20 bạn bè");
+        textViewFriendCount.setText(getString(R.string.friend_count_format, count));
         textViewInvitePrompt.setVisibility(count == 0 && friendRequestList.isEmpty() ? View.VISIBLE : View.GONE); // Logic cập nhật lại
     }
 

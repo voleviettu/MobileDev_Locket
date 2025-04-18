@@ -1,0 +1,121 @@
+<resources>
+    <string name="app_name" translatable="false">Locket</string>
+    <string name="email_title">What is your email?</string>
+    <string name="email_hint">Email address</string>
+    <string name="continue_button">Continue →</string>
+    <string name="signup">Sign Up</string>
+    <string name="signin">Sign In</string>
+    <string name="terms_and_conditions">By tapping Continue, you agree to our\nTerms of Service and Privacy Policy</string>
+    <string name="back_button_description">Back</string>
+    <string name="password_title">Choose a password</string>
+    <string name="password_hint">Password</string>
+    <string name="password_requirement">Password must be at least 8 characters</string>
+    <string name="toggle_password_visibility">Toggle password visibility</string>
+    <string name="full_name_title">What is your name?</string>
+    <string name="first_name_hint">First name</string>
+    <string name="last_name_hint">Last name</string>
+    <string name="username_title">Add a username</string>
+    <string name="username_hint">Username</string>
+    <string name="password_title_2">Enter your password</string>
+    <string name="forgot_password">Forgot your password?</string>
+    <string name="widget_config">Select friends to show on the Widget:</string>
+    <string name="no_messages">No replies yet!</string>
+    <string name="reaction_info">Activity</string>
+    <string name="no_reactions">No activities yet!</string>
+    <string name="photo_delete_error">Error deleting photo: %1$s</string>
+    <string name="no_friends">No friends available</string>
+
+    <!--    SettingsActivity-->
+    <string name="select_language">Select Language</string>
+    <string name="vietnamese">Vietnamese</string>
+    <string name="english">English</string>
+    <string name="change_icon">Change app icon</string>
+    <string name="notifications">Notifications</string>
+    <string name="privacy">Privacy</string>
+    <string name="about">About</string>
+    <string name="user_load_error">Cannot load user information</string>
+    <string name="user_not_loaded">User information not loaded, please try again</string>
+    <string name="change_language">Change Language</string>
+    <string name="settings_title">Settings</string>
+
+    <!-- ProfileActivity -->
+    <string name="get_locket_gold">Get Locket Gold</string>
+    <string name="edit_profile">Edit Profile</string>
+
+    <!--PhotoActivity-->
+    <string name="history">History</string>
+    <string name="friend_count">%d Friends</string>
+
+    <!-- FullPhotoActivity -->
+    <string name="all_friends">All friends</string>
+    <string name="self">You</string>
+
+    <!-- FeedPhotoFriendActivity -->
+    <string name="hint_send_message">Send a message...</string>
+    <string name="photo_saved">Photo saved!</string>
+    <string name="photo_load_failed">Failed to load photo!</string>
+    <string name="photo_save_failed">Failed to save photo!</string>
+    <string name="photo_delete_failed_missing_info">Cannot delete photo (missing information)</string>
+    <string name="photo_deleted">Photo deleted!</string>
+    <string name="photo_delete_failed">Failed to delete photo: %s</string>
+    <string name="please_enter_message">Please enter a message!</string>
+    <string name="activity">Activity</string>
+    <string name="no_activity">No activity yet!</string>
+    <string name="reply_to">Reply to %s...</string>
+
+    <!-- Chuỗi cho bottom_sheet_options (giả định) -->
+    <string name="save_photo">Save</string>
+    <string name="delete_photo">Delete</string>
+
+    <!-- DetailPhotoActivity -->
+    <string name="send_to">Send to...</string>
+    <string name="all">All</string>
+    <string name="option_add_message">Add a message</string>
+    <string name="option_add_music">Add music</string>
+    <string name="option_add_location">Add location</string>
+
+    <!-- OptionsFragment-->
+    <string name="select_music">Select music</string>
+    <string name="music_selected">🎵 Music selected</string>
+
+    <!-- FullChatActivity -->
+    <string name="message">Message</string>
+    <string name="time_just_now">Just now</string>
+    <string name="time_minutes">%1$d minutes</string>
+    <string name="time_hours">%1$d hours</string>
+    <string name="time_days">%1$d days</string>
+
+    <!-- EditNameActivity -->
+    <string name="edit_your_name">Edit your name</string>
+
+    <!-- UploadImageActivity -->
+    <string name="locket_gold_title">Locket Gold</string>
+    <string name="locket_gold_subtitle">Upgrade to Locket Gold for the ultimate experience!!</string>
+    <string name="feature_remove_ads_title">Remove Ads</string>
+    <string name="feature_remove_ads_description">Never see ads in your History!</string>
+    <string name="feature_video_lockets_title">Video Lockets</string>
+    <string name="feature_video_lockets_description">Record short video clips</string>
+    <string name="feature_custom_icon_title">Custom App Icon</string>
+    <string name="feature_custom_icon_description">Decorate your home screen</string>
+    <string name="feature_upload_photo_title">Upload Photos from Gallery</string>
+    <string name="feature_upload_photo_description">Share memories from your gallery</string>
+    <string name="feature_longer_caption_title">Send Longer Captions</string>
+    <string name="feature_longer_caption_description">Write more on your photos!</string>
+    <string name="upgrade_button">Upgrade to Locket Gold</string>
+    <string name="no_thanks">Maybe later, thanks</string>
+
+    <!-- Welcome Activity   -->
+    <string name="locket_subtitle">Live photos from friends, right on your home screen</string>
+    <string name="register_button">Create an account</string>
+    <string name="login_button">Log in</string>
+
+    <!-- FriendList  -->
+    <string name="friend_requests_description">Friend Requests</string>
+    <string name="your_friends_description">Your Friends</string>
+    <string name="friend_count_format">%d out of 20 friends</string>
+    <string name="invite_prompt">Invite new friends</string>
+    <string name="friend_requests_label">Friend Requests</string>
+    <string name="your_friends_label">Your Friends</string>
+    <string name="search_friend_hint">Search by name</string>
+    <string name="cancel_search">Cancel</string>
+</resources>

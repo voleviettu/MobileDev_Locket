@@ -11,12 +11,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.locket.BaseActivity;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.model.Photo;
@@ -33,10 +33,9 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FullPhotoActivity extends AppCompatActivity {
+public class FullPhotoActivity extends BaseActivity {
     private UserViewModel userViewModel;
     private SharedPhotoViewModel sharedPhotoViewModel;
-
     private PhotoViewModel photoViewModel;
     private FriendViewModel friendViewModel;
     private User currentUser;
@@ -46,7 +45,7 @@ public class FullPhotoActivity extends AppCompatActivity {
     private List<Photo> photoList;
     private ImageView btnChat, btnCapture;
     private TextView title;
-    private List<User> friendList = new ArrayList<>(); // Khởi tạo mặc định để tránh null
+    private List<User> friendList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +54,7 @@ public class FullPhotoActivity extends AppCompatActivity {
 
         int status = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
         if (status != ConnectionResult.SUCCESS) {
-            Log.e("FullPhotoActivity", "Google Play Services không khả dụng");
-            Toast.makeText(this, "Google Play Services không khả dụng", Toast.LENGTH_LONG).show();
+            Log.e("FullPhotoActivity", "Google Play Services not available");
             finish();
             return;
         }
@@ -81,7 +79,7 @@ public class FullPhotoActivity extends AppCompatActivity {
             String selectedFriendName = null;
             String selectedFriendLastname = null;
 
-            if (!title.getText().toString().equals("Tất cả bạn bè")) {
+            if (!title.getText().toString().equals(getString(R.string.all_friends))) {
                 for (User u : friendList) {
                     if (u.getFullName().equals(title.getText().toString())) {
                         selectedFriendId = u.getUid();
@@ -99,35 +97,30 @@ public class FullPhotoActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-
         recyclerView.setAdapter(imageAdapter);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
         recyclerView.setLayoutManager(gridLayoutManager);
 
-        // Quan sát currentUser để lấy userId
         userViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
                 currentUser = user;
                 userId = user.getUid();
-                // Tải danh sách bạn bè
                 friendViewModel.loadFriends(userId);
 
                 String selectedFriendId = getIntent().getStringExtra("selectedFriendId");
                 String selectedFriendName = getIntent().getStringExtra("selectedFriendName");
                 String selectedFriendLastname = getIntent().getStringExtra("selectedFriendLastname");
 
-                // Tải ảnh chia sẻ ban đầu
                 if (selectedFriendId != null) {
-                    if ("Bạn".equals(selectedFriendLastname)) {
-                        title.setText("Bạn");
+                    if (getString(R.string.self).equals(selectedFriendLastname)) {
+                        title.setText(R.string.self);
                         photoViewModel.loadUserPhotos(userId);
                         photoViewModel.getUserPhotos().observe(this, photos -> {
                             if (photos != null && !photos.isEmpty()) {
                                 imageAdapter.updatePhotos(photos);
                             } else {
                                 imageAdapter.updatePhotos(new ArrayList<>());
-                                Toast.makeText(this, "Không có ảnh nào được đăng", Toast.LENGTH_SHORT).show();
                             }
                         });
                     } else {
@@ -139,13 +132,12 @@ public class FullPhotoActivity extends AppCompatActivity {
                         });
                     }
                 } else {
-                    title.setText("Tất cả bạn bè");
+                    title.setText(R.string.all_friends);
                     sharedPhotoViewModel.getSharedPhotos(userId).observe(this, photos -> {
                         if (photos != null && !photos.isEmpty()) {
                             imageAdapter.updatePhotos(photos);
                         } else {
                             imageAdapter.updatePhotos(new ArrayList<>());
-                            Toast.makeText(this, "Không có ảnh nào được chia sẻ", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -160,26 +152,25 @@ public class FullPhotoActivity extends AppCompatActivity {
                     btnProfile.setImageResource(R.drawable.ic_profile);
                 }
             } else {
-                Log.e("FullPhotoActivity", "Không tìm thấy user!");
+                Log.e("FullPhotoActivity", "User not found!");
             }
         });
 
-        // Quan sát danh sách bạn bè
         friendViewModel.getFriends().observe(this, friends -> {
             if (friends != null && !friends.isEmpty()) {
                 friendList.clear();
                 friendList.addAll(friends);
-                Log.d("FullPhotoActivity", "Đã tải " + friendList.size() + " bạn bè");
+                Log.d("FullPhotoActivity", "Loaded " + friendList.size() + " friends");
             } else {
                 friendList.clear();
-                Log.d("FullPhotoActivity", "Không có bạn bè nào được tải");
+                Log.d("FullPhotoActivity", "No friends loaded");
             }
             if (currentUser != null) {
                 User self = new User(
                         currentUser.getUid(),
                         currentUser.getEmail(),
                         "",
-                        "Bạn",
+                        getString(R.string.self), // Sử dụng chuỗi tài nguyên
                         currentUser.getUsername(),
                         currentUser.getAvatar(),
                         currentUser.isPremium()
@@ -206,7 +197,7 @@ public class FullPhotoActivity extends AppCompatActivity {
             for (int i = 0; i < recyclerView.getChildCount(); i++) {
                 View child = recyclerView.getChildAt(i);
                 ViewGroup.LayoutParams params = child.getLayoutParams();
-                params.height = width; // Đảm bảo ảnh vuông
+                params.height = width;
                 child.setLayoutParams(params);
             }
         });
@@ -214,32 +205,43 @@ public class FullPhotoActivity extends AppCompatActivity {
         NavigationUtils.setChatButtonClickListener(btnChat, this);
         NavigationUtils.setCaptureButtonClickListener(btnCapture, this);
 
-        // Xử lý sự kiện nhấp vào title
         title.setOnClickListener(v -> {
             if (!friendList.isEmpty()) {
                 FriendDialog dialog = new FriendDialog(friendList, selectedFriend -> {
                     if (selectedFriend == null) {
-                        title.setText("Tất cả bạn bè");
-                        sharedPhotoViewModel.getSharedPhotos(userId);
-                    } else if (selectedFriend.getLastname().equals("Bạn")) {
-                        title.setText("Bạn");
+                        title.setText(R.string.all_friends);
+                        // Quan sát dữ liệu từ sharedPhotoViewModel để cập nhật ảnh
+                        sharedPhotoViewModel.getSharedPhotos(userId).observe(this, photos -> {
+                            if (photos != null && !photos.isEmpty()) {
+                                imageAdapter.updatePhotos(photos);
+                            } else {
+                                imageAdapter.updatePhotos(new ArrayList<>());
+                            }
+                        });
+                    } else if (selectedFriend.getLastname().equals(getString(R.string.self))) {
+                        title.setText(R.string.self);
                         photoViewModel.loadUserPhotos(userId);
                         photoViewModel.getUserPhotos().observe(this, photos -> {
                             if (photos != null && !photos.isEmpty()) {
                                 imageAdapter.updatePhotos(photos);
                             } else {
                                 imageAdapter.updatePhotos(new ArrayList<>());
-                                Toast.makeText(this, "Không có ảnh nào được đăng", Toast.LENGTH_SHORT).show();
                             }
                         });
                     } else {
                         title.setText(selectedFriend.getFullName());
-                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriend.getUid(), userId);
+                        sharedPhotoViewModel.getPhotosSharedWithMe(selectedFriend.getUid(), userId).observe(this, photos -> {
+                            if (photos != null && !photos.isEmpty()) {
+                                imageAdapter.updatePhotos(photos);
+                            } else {
+                                imageAdapter.updatePhotos(new ArrayList<>());
+                            }
+                        });
                     }
                 });
                 dialog.show(getSupportFragmentManager(), "friendPopup");
             } else {
-                Toast.makeText(this, "Không có bạn bè nào", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.no_friends, Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.locket.BaseActivity;
 import com.example.locket.R;
 import com.example.locket.model.Message;
 import com.example.locket.ui.settings.MessageAdapter;
@@ -24,7 +25,7 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatDetailActivity extends AppCompatActivity {
+public class ChatDetailActivity extends BaseActivity {
     private RecyclerView rvChatMessages;
     private EditText etMessageInput;
     private ImageView ivSendMessage, ivFriendAvatar;

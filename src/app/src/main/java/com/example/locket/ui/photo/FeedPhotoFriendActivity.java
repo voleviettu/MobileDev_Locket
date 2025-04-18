@@ -30,6 +30,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.example.locket.BaseActivity;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.model.Message;
@@ -55,7 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class FeedPhotoFriendActivity extends AppCompatActivity {
+public class FeedPhotoFriendActivity extends BaseActivity {
 
     private ViewPager2 viewPager2;
     private SharedPhotoViewModel sharedPhotoViewModel;
@@ -152,7 +153,7 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
                         currentUser.getUid(),
                         currentUser.getEmail(),
                         "",
-                        "Bạn",
+                        getString(R.string.self),
                         currentUser.getUsername(),
                         currentUser.getAvatar(),
                         currentUser.isPremium()
@@ -171,13 +172,13 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
 
                 // Load danh sách ảnh dựa trên selectedFriendId
                 if (selectedFriendId == null) {
-                    title.setText("Tất cả bạn bè");
+                    title.setText(R.string.all_friends);
                     sharedPhotoViewModel.getSharedPhotos(currentUserId).observe(this, sharedPhotos -> {
                         updatePhotoFeedAndScroll(users, sharedPhotos, targetPhotoId, isPremium);
                         adapterInitialized = true;
                     });
-                } else if ("Bạn".equals(selectedFriendLastname)) {
-                    title.setText("Bạn");
+                } else if (getString(R.string.self).equals(selectedFriendLastname)) {
+                    title.setText(R.string.self);
                     sharedPhotoViewModel.getMyPhotos(currentUserId).observe(this, sharedPhotos -> {
                         updatePhotoFeedAndScroll(users, sharedPhotos, targetPhotoId, isPremium);
                         adapterInitialized = true;
@@ -195,7 +196,7 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         // Quan sát reactionsLiveData
         photoReactionViewModel.getReactionsLiveData().observe(this, reactions -> {
             if (reactions != null && !reactions.isEmpty()) {
-                reactionInfoText.setText("Hoạt động");
+                reactionInfoText.setText(R.string.activity);
                 Log.d("FeedPhotoFriendActivity", "Reactions: " + reactions.size());
 
                 currentReactions.clear();
@@ -237,7 +238,7 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
                     }
                 }
             } else {
-                reactionInfoText.setText("Chưa có hoạt động nào!");
+                reactionInfoText.setText(R.string.no_activity);
                 reactionAvatarsContainer.removeAllViews();
                 currentReactions.clear();
                 Log.d("FeedPhotoFriendActivity", "No reactions for this photo");
@@ -248,30 +249,6 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
         reactionInfoContainer.setOnClickListener(v -> {
             if (!currentReactions.isEmpty()) {
                 showReactionDetailsDialog();
-            }
-        });
-
-        // Sự kiện nhấn vào title để chọn bạn bè
-        title.setOnClickListener(v -> {
-            if (!friendList.isEmpty()) {
-                adapterInitialized = false; // Đặt lại để adapter có thể được khởi tạo lại
-                FriendDialog dialog = new FriendDialog(friendList, friend -> {
-                    selectedFriend = friend;
-
-                    if (friend == null) {
-                        title.setText("Tất cả bạn bè");
-                        sharedPhotoViewModel.getSharedPhotos(currentUserId).observe(this, this::updatePhotoFeedBySender);
-                    } else if ("Bạn".equals(friend.getLastname())) {
-                        title.setText("Bạn");
-                        sharedPhotoViewModel.getMyPhotos(currentUserId).observe(this, this::updatePhotoFeedBySender);
-                    } else {
-                        title.setText(friend.getFullName());
-                        sharedPhotoViewModel.getPhotosSharedWithMe(friend.getUid(), currentUserId).observe(this, this::updatePhotoFeedBySender);
-                    }
-                });
-                dialog.show(getSupportFragmentManager(), "friendDialog");
-            } else {
-                Toast.makeText(this, "Không có bạn bè nào", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -355,6 +332,29 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
             });
 
             bottomSheetDialog.show();
+        });
+        // Sự kiện nhấn vào title để chọn bạn bè
+        title.setOnClickListener(v -> {
+            if (!friendList.isEmpty()) {
+                adapterInitialized = false; // Đặt lại để adapter có thể được khởi tạo lại
+                FriendDialog dialog = new FriendDialog(friendList, friend -> {
+                    selectedFriend = friend;
+
+                    if (friend == null) {
+                        title.setText(R.string.all_friends);
+                        sharedPhotoViewModel.getSharedPhotos(currentUserId).observe(this, this::updatePhotoFeedBySender);
+                    } else if (getString(R.string.self).equals(friend.getLastname())) {
+                        title.setText(R.string.self);
+                        sharedPhotoViewModel.getMyPhotos(currentUserId).observe(this, this::updatePhotoFeedBySender);
+                    } else {
+                        title.setText(friend.getFullName());
+                        sharedPhotoViewModel.getPhotosSharedWithMe(friend.getUid(), currentUserId).observe(this, this::updatePhotoFeedBySender);
+                    }
+                });
+                dialog.show(getSupportFragmentManager(), "friendDialog");
+            } else {
+                Toast.makeText(this, R.string.no_friends, Toast.LENGTH_SHORT).show();
+            }
         });
 
         emojiHeart.setOnClickListener(v -> {
@@ -531,7 +531,7 @@ public class FeedPhotoFriendActivity extends AppCompatActivity {
             }
         }
 
-        etMessageInput.setHint("Trả lời " + photoOwnerLastname + "...");
+        etMessageInput.setHint(getString(R.string.reply_to, photoOwnerLastname));
         etMessageInput.requestFocus();
 
         etMessageInput.addTextChangedListener(new android.text.TextWatcher() {
