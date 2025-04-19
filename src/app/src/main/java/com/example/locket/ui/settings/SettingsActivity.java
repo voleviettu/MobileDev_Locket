@@ -15,9 +15,11 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import com.example.locket.BaseActivity;
 import com.example.locket.MyApplication;
 import com.example.locket.R;
+import com.example.locket.auth.WelcomeActivity;
 import com.example.locket.model.User;
 import com.example.locket.ui.photo.UploadImageActivity;
 import com.example.locket.viewmodel.UserViewModel;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 
@@ -60,6 +62,7 @@ public class SettingsActivity extends BaseActivity {
         settingsItems.add(new SettingsItem(R.drawable.ic_privacy, getString(R.string.privacy)));
         settingsItems.add(new SettingsItem(R.drawable.ic_about, getString(R.string.about)));
         settingsItems.add(new SettingsItem(R.drawable.ic_language, getString(R.string.change_language)));
+        settingsItems.add(new SettingsItem(R.drawable.ic_logout, getString(R.string.logout)));
 
         adapter = new SettingsAdapter(this, settingsItems);
         settingsList.setAdapter(adapter);
@@ -84,6 +87,12 @@ public class SettingsActivity extends BaseActivity {
                     break;
                 case 4: // Đổi ngôn ngữ
                     showLanguageDialog();
+                    break;
+                case 5:
+                    // Đăng xuất
+                    FirebaseAuth.getInstance().signOut();
+                    startActivity(new Intent(SettingsActivity.this, WelcomeActivity.class));
+                    finish();
                     break;
                 default:
                     break;

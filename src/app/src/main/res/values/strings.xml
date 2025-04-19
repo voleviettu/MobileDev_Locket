@@ -115,5 +115,5 @@
     <string name="search_friend_hint">Tìm kiếm theo tên</string>
     <string name="cancel_search">Hủy</string>
 
-    <string name="widget_progress" translatable="false">Đang trong quá trình...</string>
+    <string name="logout">Đăng xuất</string>
 </resources>
