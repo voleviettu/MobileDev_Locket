@@ -114,4 +114,6 @@
     <string name="your_friends_label">Bạn bè của bạn</string>
     <string name="search_friend_hint">Tìm kiếm theo tên</string>
     <string name="cancel_search">Hủy</string>
+
+    <string name="widget_progress" translatable="false">Đang trong quá trình...</string>
 </resources>

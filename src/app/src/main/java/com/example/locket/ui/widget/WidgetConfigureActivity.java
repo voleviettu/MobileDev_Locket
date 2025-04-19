@@ -16,9 +16,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.Constraints;
 import androidx.work.Data;
+import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.locket.MyApplication;
@@ -29,6 +33,7 @@ import com.example.locket.viewmodel.UserViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class WidgetConfigureActivity extends AppCompatActivity {
 
@@ -156,36 +161,35 @@ public class WidgetConfigureActivity extends AppCompatActivity {
     }
 
     static void triggerWidgetUpdate(Context context, int appWidgetId) {
-        Log.d(TAG, ">>> Configure: triggerWidgetUpdate BẮT ĐẦU cho widget " + appWidgetId);
-        Log.d(TAG, "Triggering unique update work for widget " + appWidgetId);
+        Log.d(TAG, "Scheduling periodic updates for widget " + appWidgetId);
 
         String uniqueWorkName = "widget_update_" + appWidgetId;
 
+        // Pass the widgetId along so your Worker knows which instance to update:
         Data inputData = new Data.Builder()
                 .putInt(WidgetUpdateWorker.WIDGET_ID_KEY, appWidgetId)
                 .build();
 
-        OneTimeWorkRequest updateWorkRequest =
-                new OneTimeWorkRequest.Builder(WidgetUpdateWorker.class)
-                        .setInputData(inputData)
-                        // Có thể thêm các ràng buộc khác nếu cần (ví dụ: mạng)
-                        // .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
-                        .build();
+        // Build a periodic request — Android mandates a minimum 15‑minute interval:
+        PeriodicWorkRequest periodicRequest = new PeriodicWorkRequest.Builder(
+                WidgetUpdateWorker.class,
+                30, TimeUnit.MINUTES        // choose your cadence (>= 15 minutes)
+        )
+                .setInputData(inputData)
+                // (optional) only run when there’s a network connection:
+                .setConstraints(
+                        new Constraints.Builder()
+                                .setRequiredNetworkType(NetworkType.CONNECTED)
+                                .build()
+                )
+                .build();
 
-        WorkManager.getInstance(context.getApplicationContext()).enqueueUniqueWork(
-                uniqueWorkName, // Tên công việc duy nhất
-                ExistingWorkPolicy.REPLACE, // Chính sách khi công việc đã tồn tại
-                updateWorkRequest
-        );
-
-//        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-//        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.locket_widget_layout);
-//        views.setViewVisibility(R.id.widget_progress, View.VISIBLE);
-//        views.setTextViewText(R.id.widget_sender_name, "Đang cập nhật...");
-//        views.setImageViewResource(R.id.widget_photo, R.drawable.widget_placeholder);
-//
-//        appWidgetManager.updateAppWidget(appWidgetId, views);
-//        Log.d(TAG,"Configure: Đã set widget " + appWidgetId + " về trạng thái loading.");
-        Log.d(TAG,"Enqueued unique work '"+ uniqueWorkName +"' with REPLACE policy.");
+        WorkManager.getInstance(context.getApplicationContext())
+                .enqueueUniquePeriodicWork(
+                        uniqueWorkName,                     // distinct per widget instance
+                        ExistingPeriodicWorkPolicy.REPLACE,    // keep the very first periodic job
+                        periodicRequest
+                );
     }
+
 }
