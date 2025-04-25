@@ -21,6 +21,7 @@ import com.example.locket.MyApplication;
 import com.example.locket.R;
 import com.example.locket.model.Photo;
 import com.example.locket.model.User;
+import com.example.locket.ui.profile.ProfileActivity;
 import com.example.locket.ui.settings.ImageAdapter;
 import com.example.locket.utils.NavigationUtils;
 import com.example.locket.viewmodel.FriendViewModel;
@@ -43,7 +44,7 @@ public class FullPhotoActivity extends BaseActivity {
     private RecyclerView recyclerView;
     private ImageAdapter imageAdapter;
     private List<Photo> photoList;
-    private ImageView btnChat, btnCapture;
+    private ImageView btnChat, btnCapture, btnProfile;
     private TextView title;
     private List<User> friendList = new ArrayList<>();
 
@@ -67,9 +68,15 @@ public class FullPhotoActivity extends BaseActivity {
         recyclerView = findViewById(R.id.recyclerView);
         btnChat = findViewById(R.id.btn_chat);
         btnCapture = findViewById(R.id.btn_capture);
+        btnProfile = findViewById(R.id.btn_profile);
         title = findViewById(R.id.tv_title);
         photoList = new ArrayList<>();
         imageAdapter = new ImageAdapter(this, photoList);
+
+        btnProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(FullPhotoActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
 
         imageAdapter.setOnPhotoClickListener(photo -> {
             Intent intent = new Intent(FullPhotoActivity.this, FeedPhotoFriendActivity.class);

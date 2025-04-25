@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -70,6 +71,8 @@ public class OptionsFragment extends Fragment {
     EditText messageInput;
     Button optionSongButton;
     Button optionLocationButton;
+    private ProgressBar locationLoading;
+
     private boolean hasFetchedLocation = false;
 
     public interface OnOptionSelectedListener {
@@ -111,6 +114,7 @@ public class OptionsFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.item_message_option, container, false);
+        locationLoading = view.findViewById(R.id.location_loading);
 
         messageInput = view.findViewById(R.id.message_input);
         optionSongButton = view.findViewById(R.id.option_button_song);
@@ -175,6 +179,10 @@ public class OptionsFragment extends Fragment {
             Log.e("MapboxLocation", "Chưa có quyền vị trí");
             return;
         }
+        requireActivity().runOnUiThread(() -> {
+            if (locationLoading != null) locationLoading.setVisibility(View.VISIBLE);
+        });
+
         hasFetchedLocation = true;
 
         LocationRequest request = LocationRequest.create()
@@ -252,11 +260,16 @@ public class OptionsFragment extends Fragment {
                         Intent intent = new Intent(getContext(), PlaceListActivity.class);
                         intent.putExtra("places", nearbyPlaces);
                         startActivityForResult(intent, REQUEST_PLACE_PICKER);
+                        if (locationLoading != null) locationLoading.setVisibility(View.GONE);
+
                     }
                 });
 
             } catch (Exception e) {
                 e.printStackTrace();
+                requireActivity().runOnUiThread(() -> {
+                    if (locationLoading != null) locationLoading.setVisibility(View.GONE);
+                });
             }
         }).start();
     }
@@ -365,6 +378,7 @@ public class OptionsFragment extends Fragment {
         }
         if (requestCode == REQUEST_CODE_PICK_MUSIC && resultCode == Activity.RESULT_OK && data != null) {
             selectedMusicUri = data.getData();
+            if (locationLoading != null) locationLoading.setVisibility(View.VISIBLE);
 
             new Thread(() -> {
                 String trimmedPath = trimAudioTo20Seconds(requireContext(), selectedMusicUri);
@@ -378,6 +392,7 @@ public class OptionsFragment extends Fragment {
                             if (listener != null) listener.onMusicSelected(uploadedUrl);
                             optionSongButton.setText(getString(R.string.music_selected));
                         }
+                        if (locationLoading != null) locationLoading.setVisibility(View.GONE);
                     });
                 }
             }).start();

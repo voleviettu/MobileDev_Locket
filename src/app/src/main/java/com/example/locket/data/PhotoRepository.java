@@ -81,14 +81,20 @@ public class PhotoRepository {
             return;
         }
 
-        db.collection(COLLECTION_NAME)
-                .whereIn("photoId", photoIds)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+        List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
+        for (String id : photoIds) {
+            tasks.add(db.collection("photos").document(id).get());
+        }
+
+        Tasks.whenAllSuccess(tasks)
+                .addOnSuccessListener(results -> {
                     List<Photo> photos = new ArrayList<>();
-                    for (var doc : queryDocumentSnapshots) {
-                        Photo photo = doc.toObject(Photo.class);
-                        photos.add(photo);
+                    for (Object obj : results) {
+                        DocumentSnapshot doc = (DocumentSnapshot) obj;
+                        if (doc.exists()) {
+                            Photo photo = doc.toObject(Photo.class);
+                            photos.add(photo);
+                        }
                     }
 
                     photos.sort((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()));
